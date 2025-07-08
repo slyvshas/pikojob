@@ -16,37 +16,7 @@ import { supabase } from './lib/supabase.js'
 
 // Protected Route component for admin access
 const ProtectedRoute = ({ children }) => {
-  const { user } = useAuth()
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const checkAdmin = async () => {
-      if (!user) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', user.id)
-          .single()
-
-        if (error) throw error
-
-        setIsAdmin(data?.is_admin === true)
-      } catch (error) {
-        console.error('Error fetching admin status:', error.message)
-        setIsAdmin(false)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkAdmin()
-  }, [user])
+  const { user, isAdmin, loading } = useAuth()
 
   if (loading) {
     return <Center minH="100vh"><Spinner size="xl" /></Center>

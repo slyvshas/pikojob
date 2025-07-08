@@ -1,48 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Box, Flex, Button, Link as ChakraLink, useColorModeValue, IconButton, Collapse, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
 import { FaPlus, FaList } from 'react-icons/fa'
 
 const Navbar = () => {
-  const { user, signOut } = useAuth()
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const { user, signOut, isAdmin, loading } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const bgColor = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.700')
-
-  useEffect(() => {
-    const checkAdmin = async () => {
-      if (!user) {
-        setIsAdmin(false)
-        setLoading(false)
-        return
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', user.id)
-          .single()
-
-        if (error) throw error
-
-        setIsAdmin(data?.is_admin === true)
-      } catch (error) {
-        console.error('Error fetching admin status:', error.message)
-        setIsAdmin(false)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkAdmin()
-  }, [user])
 
   return (
     <Box bg={bgColor} px={4} borderBottom="1px" borderColor={borderColor}>
