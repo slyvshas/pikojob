@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardBody,
   CardFooter,
-  Link as ChakraLink,
+  Link,
   Divider,
   Icon,
   Badge,
@@ -63,7 +63,6 @@ const FreeCoursesDashboard = () => {
         description,
         link,
         provider,
-        author_id: user?.id,
       },
     ]);
     if (error) setError(error.message);
@@ -83,53 +82,51 @@ const FreeCoursesDashboard = () => {
     setLoading(false);
   };
 
-  if (!isAdmin) {
-    return <Box p={8} textAlign="center"><Heading size="md">Access denied. Admins only.</Heading></Box>;
-  }
-
   return (
     <Box maxW="900px" mx="auto" py={10} px={4}>
       <Heading mb={8} textAlign="center" color="blue.600">Free Courses Dashboard</Heading>
-      <Box as="form" onSubmit={handleSubmit} mb={12} p={6} borderRadius="lg" boxShadow="md" bg="white">
-        <VStack spacing={4} align="stretch">
-          <Heading size="md" mb={2}>Post a New Free Course</Heading>
-          <Input
-            type="text"
-            placeholder="Course Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            size="md"
-            bg="gray.50"
-          />
-          <Input
-            type="text"
-            placeholder="Course Provider"
-            value={provider}
-            onChange={(e) => setProvider(e.target.value)}
-            size="md"
-            bg="gray.50"
-          />
-          <Textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            bg="gray.50"
-          />
-          <Input
-            type="url"
-            placeholder="Course Link (URL)"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-            size="md"
-            bg="gray.50"
-          />
-          <Button type="submit" colorScheme="blue" isLoading={loading} size="md" alignSelf="flex-end">
-            Post Course
-          </Button>
-          {error && <Text color="red.500">{error}</Text>}
-        </VStack>
-      </Box>
+      {isAdmin && (
+        <Box as="form" onSubmit={handleSubmit} mb={12} p={6} borderRadius="lg" boxShadow="md" bg="white">
+          <VStack spacing={4} align="stretch">
+            <Heading size="md" mb={2}>Post a New Free Course</Heading>
+            <Input
+              type="text"
+              placeholder="Course Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              size="md"
+              bg="gray.50"
+            />
+            <Input
+              type="text"
+              placeholder="Course Provider"
+              value={provider}
+              onChange={(e) => setProvider(e.target.value)}
+              size="md"
+              bg="gray.50"
+            />
+            <Textarea
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              bg="gray.50"
+            />
+            <Input
+              type="url"
+              placeholder="Course Link (URL)"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              size="md"
+              bg="gray.50"
+            />
+            <Button type="submit" colorScheme="blue" isLoading={loading} size="md" alignSelf="flex-end">
+              Post Course
+            </Button>
+            {error && <Text color="red.500">{error}</Text>}
+          </VStack>
+        </Box>
+      )}
       <Heading size="md" mb={6} color="blue.700">Existing Free Courses</Heading>
       {loading ? (
         <Text>Loading...</Text>
@@ -173,9 +170,9 @@ const FreeCoursesDashboard = () => {
                     {course.description}
                   </Text>
                   <Divider my={2} />
-                  <ChakraLink href={course.link} isExternal color="blue.500" fontWeight="bold" fontSize="md">
+                  <Link href={course.link} isExternal color="blue.500" fontWeight="bold" fontSize="md">
                     Go to Course <Icon as={FaExternalLinkAlt} ml={1} />
-                  </ChakraLink>
+                  </Link>
                 </CardBody>
                 <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
                   <Text fontSize="xs" color="gray.500">

@@ -3,7 +3,7 @@ import { Box, Flex, Button, Link as ChakraLink, useColorModeValue, IconButton, C
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
-import { FaPlus, FaList, FaBookOpen } from 'react-icons/fa'
+import { FaPlus, FaList, FaBookOpen, FaEdit } from 'react-icons/fa'
 
 const Navbar = () => {
   const { user, signOut, isAdmin, loading } = useAuth()
@@ -23,6 +23,12 @@ const Navbar = () => {
         <Flex alignItems="center" gap={4} display={{ base: 'none', md: 'flex' }}>
           <ChakraLink as={RouterLink} to="/jobs">
             Browse Jobs
+          </ChakraLink>
+          <ChakraLink as={RouterLink} to="/free-courses">
+            Free Courses
+          </ChakraLink>
+          <ChakraLink as={RouterLink} to="/blogs">
+            Blogs
           </ChakraLink>
           
           {user && !loading ? (
@@ -50,13 +56,17 @@ const Navbar = () => {
                     aria-label="Free Courses"
                     variant="ghost"
                   />
+                  <IconButton
+                    as={RouterLink}
+                    to="/admin/blog-management"
+                    icon={<FaEdit />}
+                    aria-label="Blog Management"
+                    variant="ghost"
+                  />
                 </>
               )}
               <ChakraLink as={RouterLink} to="/saved-jobs">
                 Saved Jobs
-              </ChakraLink>
-              <ChakraLink as={RouterLink} to="/free-courses">
-                Free Courses
               </ChakraLink>
               <Button onClick={() => signOut()} variant="outline">
                 Sign Out
@@ -101,7 +111,12 @@ const Navbar = () => {
           <ChakraLink as={RouterLink} to="/jobs" onClick={() => setIsMenuOpen(false)}>
             Browse Jobs
           </ChakraLink>
-          
+          <ChakraLink as={RouterLink} to="/free-courses" onClick={() => setIsMenuOpen(false)}>
+            Free Courses
+          </ChakraLink>
+          <ChakraLink as={RouterLink} to="/blogs" onClick={() => setIsMenuOpen(false)}>
+            Blogs
+          </ChakraLink>
           {user && !loading ? (
             <>
               {isAdmin && (
@@ -133,13 +148,19 @@ const Navbar = () => {
                   >
                     Free Courses
                   </Button>
+                  <Button
+                    as={RouterLink}
+                    to="/admin/blog-management"
+                    leftIcon={<FaEdit />}
+                    onClick={() => setIsMenuOpen(false)}
+                    width="100%"
+                  >
+                    Blog Management
+                  </Button>
                 </VStack>
               )}
               <ChakraLink as={RouterLink} to="/saved-jobs" onClick={() => setIsMenuOpen(false)}>
                 Saved Jobs
-              </ChakraLink>
-              <ChakraLink as={RouterLink} to="/free-courses" onClick={() => setIsMenuOpen(false)}>
-                Free Courses
               </ChakraLink>
               <Button onClick={() => { signOut(); setIsMenuOpen(false) }} variant="outline" width="100%">
                 Sign Out

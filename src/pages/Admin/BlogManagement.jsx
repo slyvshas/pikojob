@@ -1,14 +1,30 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { supabase } from '../../lib/supabase';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
+import {
+  Box,
+  Heading,
+  Input,
+  Textarea,
+  Button,
+  VStack,
+  Text,
+  useToast,
+  Divider,
+} from '@chakra-ui/react';
+import MediumEditor from '../../components/MediumEditor.jsx';
 
 const BlogManagement = () => {
-  const { user, isAdmin } = useContext(AuthContext);
+  const { user, isAdmin } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const toast = useToast();
+  const [excerpt, setExcerpt] = useState('');
+  const [coverImageFile, setCoverImageFile] = useState(null);
+  const [tagsInput, setTagsInput] = useState(''); // comma-separated tags
 
   useEffect(() => {
     fetchPosts();
@@ -25,76 +41,145 @@ const BlogManagement = () => {
     setLoading(false);
   };
 
+  function generateSlug(title) {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!title || !content) {
-      setError('Title and content are required.');
+    if (!title || !excerpt || !content) {
+      setError('Title, excerpt, and content are required.');
       return;
     }
     setLoading(true);
+    let coverImageUrl = '';
+    if (coverImageFile) {
+      const fileExt = coverImageFile.name.split('.').pop();
+      const fileName = `${generateSlug(title)}-${Date.now()}.${fileExt}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(fileName, coverImageFile);
+      if (uploadError) {
+        setError('Image upload failed: ' + uploadError.message);
+        setLoading(false);
+        return;
+      }
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
+      coverImageUrl = publicUrlData.publicUrl;
+    }
+    const slug = generateSlug(title);
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(Boolean);
     const { error } = await supabase.from('blog_posts').insert([
       {
         title,
+        slug,
+        excerpt,
         content,
-        author_id: user?.id,
+        cover_image_url: coverImageUrl,
+        author_name: user?.email,
+        tags,
+        created_by: user?.id,
+        published_at: new Date().toISOString(),
       },
     ]);
-    if (error) setError(error.message);
-    else {
+    if (error) {
+      setError(error.message);
+      toast({
+        title: 'Error posting blog',
+        description: error.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } else {
       setTitle('');
+      setExcerpt('');
       setContent('');
+      setCoverImageFile(null);
+      setTagsInput('');
       fetchPosts();
+      toast({
+        title: 'Blog posted!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
     }
     setLoading(false);
   };
 
   if (!isAdmin) {
-    return <div>Access denied. Admins only.</div>;
+    return <Box p={8} textAlign="center"><Heading size="md">Access denied. Admins only.</Heading></Box>;
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: 20 }}>
-      <h2>Blog Management</h2>
-      <form onSubmit={handleSubmit} style={{ marginBottom: 32 }}>
-        <div>
-          <input
+    <Box maxW="700px" mx="auto" py={10} px={4}>
+      <Heading mb={8} textAlign="center" color="blue.600">Blog Management</Heading>
+      <Box as="form" onSubmit={handleSubmit} mb={12} p={6} borderRadius="lg" boxShadow="md" bg="white">
+        <VStack spacing={4} align="stretch">
+          <Heading size="md" mb={2}>Post a New Blog</Heading>
+          <Input
             type="text"
-            placeholder="Title"
+            placeholder="Blog Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{ width: '100%', padding: 8, marginBottom: 8 }}
+            size="md"
+            bg="gray.50"
           />
-        </div>
-        <div>
-          <textarea
-            placeholder="Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={6}
-            style={{ width: '100%', padding: 8, marginBottom: 8 }}
+          <Input
+            type="text"
+            placeholder="Excerpt"
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            size="md"
+            bg="gray.50"
           />
-        </div>
-        <button type="submit" disabled={loading} style={{ padding: '8px 16px' }}>
-          {loading ? 'Posting...' : 'Post Blog'}
-        </button>
-        {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
-      </form>
-      <h3>Existing Blog Posts</h3>
+          {/* Replace Textarea with MediumEditor */}
+          <MediumEditor value={content} onChange={setContent} />
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={e => setCoverImageFile(e.target.files[0])}
+            size="md"
+            bg="gray.50"
+          />
+          <Input
+            type="text"
+            placeholder="Tags (comma separated)"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            size="md"
+            bg="gray.50"
+          />
+          <Button type="submit" colorScheme="blue" isLoading={loading} size="md" alignSelf="flex-end">
+            Post Blog
+          </Button>
+          {error && <Text color="red.500">{error}</Text>}
+        </VStack>
+      </Box>
+      <Heading size="md" mb={6} color="blue.700">Existing Blog Posts</Heading>
       {loading ? (
-        <div>Loading...</div>
+        <Text>Loading...</Text>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <VStack spacing={4} align="stretch">
           {posts.map((post) => (
-            <li key={post.id} style={{ border: '1px solid #ccc', marginBottom: 12, padding: 12 }}>
-              <h4>{post.title}</h4>
-              <p>{post.content}</p>
-              <small>Posted on {new Date(post.created_at).toLocaleString()}</small>
-            </li>
+            <Box key={post.id} borderWidth="1px" borderRadius="lg" p={4} bg="white" boxShadow="sm">
+              <Heading size="sm">{post.title}</Heading>
+              <Divider my={2} />
+              <Box fontSize="md" color="gray.800" dangerouslySetInnerHTML={{ __html: post.content }} />
+              <Text fontSize="xs" color="gray.500">
+                Posted on {new Date(post.created_at).toLocaleString()}
+              </Text>
+            </Box>
           ))}
-        </ul>
+        </VStack>
       )}
-    </div>
+    </Box>
   );
 };
 

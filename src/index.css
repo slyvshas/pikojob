@@ -52,6 +52,38 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.tiptap-content h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 1em 0 0.5em 0;
+}
+.tiptap-content h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 1em 0 0.5em 0;
+}
+.tiptap-content h3 {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 1em 0 0.5em 0;
+}
+.tiptap-content ul,
+.tiptap-content ol {
+  margin-left: 1.5em;
+  margin-bottom: 1em;
+}
+.tiptap-content li {
+  margin-bottom: 0.3em;
+}
+.tiptap-content p {
+  margin-bottom: 1em;
+}
+.tiptap-content img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 1em 0;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

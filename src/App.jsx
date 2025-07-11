@@ -12,6 +12,9 @@ import CreateJob from './pages/CreateJob.jsx'
 import JobManagement from './pages/Admin/JobManagement.jsx'
 import FreeCoursesDashboard from './pages/Admin/FreeCoursesDashboard.jsx';
 import FreeCourses from './pages/FreeCourses.jsx';
+import BlogManagement from './pages/Admin/BlogManagement.jsx';
+import Blogs from './pages/Blogs.jsx';
+import BlogDetail from './pages/BlogDetail.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { theme } from './theme.js'
 import { supabase } from './lib/supabase.js'
@@ -49,6 +52,8 @@ function App() {
                     <Route path="/jobs/:id" element={<JobDetails />} />
                     <Route path="/saved-jobs" element={<SavedJobs />} />
                     <Route path="/free-courses" element={<FreeCourses />} />
+                    <Route path="/blogs" element={<Blogs />} />
+                    <Route path="/blogs/:slug" element={<BlogDetail />} />
                     <Route 
                       path="/create-job" 
                       element={
@@ -70,6 +75,14 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <FreeCoursesDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/admin/blog-management" 
+                      element={
+                        <ProtectedRoute>
+                          <BlogManagement />
                         </ProtectedRoute>
                       } 
                     />
