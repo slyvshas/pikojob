@@ -11,8 +11,10 @@ import {
   Text,
   useToast,
   Divider,
+  IconButton,
 } from '@chakra-ui/react';
 import MediumEditor from '../../components/MediumEditor.jsx';
+import { DeleteIcon } from '@chakra-ui/icons';
 
 const BlogManagement = () => {
   const { user, isAdmin } = useAuth();
@@ -81,7 +83,7 @@ const BlogManagement = () => {
         excerpt,
         content,
         cover_image_url: coverImageUrl,
-        author_name: user?.email,
+        author_name: 'Piko staff',
         tags,
         created_by: user?.id,
         published_at: new Date().toISOString(),
@@ -107,6 +109,31 @@ const BlogManagement = () => {
         title: 'Blog posted!',
         status: 'success',
         duration: 3000,
+        isClosable: true,
+      });
+    }
+    setLoading(false);
+  };
+
+  // Restore the blog list and add delete logic
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this blog post?')) return;
+    setLoading(true);
+    const { error } = await supabase.from('blog_posts').delete().eq('id', id);
+    if (error) {
+      toast({
+        title: 'Error deleting blog',
+        description: error.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } else {
+      fetchPosts();
+      toast({
+        title: 'Blog deleted!',
+        status: 'success',
+        duration: 2000,
         isClosable: true,
       });
     }
@@ -162,19 +189,30 @@ const BlogManagement = () => {
           {error && <Text color="red.500">{error}</Text>}
         </VStack>
       </Box>
+      {/* Blog list with delete button */}
       <Heading size="md" mb={6} color="blue.700">Existing Blog Posts</Heading>
       {loading ? (
         <Text>Loading...</Text>
       ) : (
         <VStack spacing={4} align="stretch">
           {posts.map((post) => (
-            <Box key={post.id} borderWidth="1px" borderRadius="lg" p={4} bg="white" boxShadow="sm">
+            <Box key={post.id} borderWidth="1px" borderRadius="lg" p={4} bg="white" boxShadow="sm" position="relative">
               <Heading size="sm">{post.title}</Heading>
               <Divider my={2} />
               <Box fontSize="md" color="gray.800" dangerouslySetInnerHTML={{ __html: post.content }} />
               <Text fontSize="xs" color="gray.500">
                 Posted on {new Date(post.created_at).toLocaleString()}
               </Text>
+              <IconButton
+                icon={<DeleteIcon />}
+                colorScheme="red"
+                size="sm"
+                aria-label="Delete blog"
+                position="absolute"
+                top={2}
+                right={2}
+                onClick={() => handleDelete(post.id)}
+              />
             </Box>
           ))}
         </VStack>
