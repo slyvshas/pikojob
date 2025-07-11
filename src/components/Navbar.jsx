@@ -3,7 +3,7 @@ import { Box, Flex, Button, Link as ChakraLink, useColorModeValue, IconButton, C
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
-import { FaPlus, FaList } from 'react-icons/fa'
+import { FaPlus, FaList, FaBookOpen } from 'react-icons/fa'
 
 const Navbar = () => {
   const { user, signOut, isAdmin, loading } = useAuth()
@@ -43,10 +43,20 @@ const Navbar = () => {
                     aria-label="Job Management"
                     variant="ghost"
                   />
+                  <IconButton
+                    as={RouterLink}
+                    to="/admin/free-courses"
+                    icon={<FaBookOpen />}
+                    aria-label="Free Courses"
+                    variant="ghost"
+                  />
                 </>
               )}
               <ChakraLink as={RouterLink} to="/saved-jobs">
                 Saved Jobs
+              </ChakraLink>
+              <ChakraLink as={RouterLink} to="/free-courses">
+                Free Courses
               </ChakraLink>
               <Button onClick={() => signOut()} variant="outline">
                 Sign Out
@@ -114,10 +124,22 @@ const Navbar = () => {
                   >
                     Job Management
                   </Button>
+                  <Button
+                    as={RouterLink}
+                    to="/admin/free-courses"
+                    leftIcon={<FaBookOpen />}
+                    onClick={() => setIsMenuOpen(false)}
+                    width="100%"
+                  >
+                    Free Courses
+                  </Button>
                 </VStack>
               )}
               <ChakraLink as={RouterLink} to="/saved-jobs" onClick={() => setIsMenuOpen(false)}>
                 Saved Jobs
+              </ChakraLink>
+              <ChakraLink as={RouterLink} to="/free-courses" onClick={() => setIsMenuOpen(false)}>
+                Free Courses
               </ChakraLink>
               <Button onClick={() => { signOut(); setIsMenuOpen(false) }} variant="outline" width="100%">
                 Sign Out

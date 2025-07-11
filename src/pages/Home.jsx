@@ -196,49 +196,51 @@ const Home = () => {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <VStack spacing={12} align="stretch">
-        {/* Hero Section */}
-        <Box textAlign="center" py={20}>
-          <Heading size="2xl" mb={6}>
+      <Box>
+        <VStack spacing={6} align="center">
+          <Heading as="h1" size="2xl" textAlign="center">
             Find Your Dream Job
           </Heading>
-          <Text fontSize="xl" color="gray.600" mb={8}>
-            Discover thousands of job opportunities with all the information you need
+          <Text fontSize="xl" color="gray.600" textAlign="center">
+            Discover the best jobs and free learning resources to boost your career.
           </Text>
+          <VStack spacing={4} align="center" justify="center" width="100%">
+            <HStack spacing={4} justify="center">
+              <Button colorScheme="blue" size="lg" onClick={() => navigate('/jobs')}>
+                Browse Jobs
+              </Button>
+              <Button colorScheme="blue" size="lg" onClick={() => navigate('/free-courses')}>
+                Free Courses
+              </Button>
+            </HStack>
+          </VStack>
+        </VStack>
+      </Box>
+
+      {/* Featured Jobs Section */}
+      <Box>
+        <HStack justify="space-between" mb={6}>
+          <Heading size="lg">
+            <HStack>
+              <FaStar color="gold" />
+              <Text>Featured Jobs</Text>
+            </HStack>
+          </Heading>
           <Button
-            size="lg"
+            variant="ghost"
             colorScheme="blue"
             onClick={() => navigate('/jobs')}
           >
-            Browse Jobs
+            View All
           </Button>
-        </Box>
+        </HStack>
 
-        {/* Featured Jobs Section */}
-        <Box>
-          <HStack justify="space-between" mb={6}>
-            <Heading size="lg">
-              <HStack>
-                <FaStar color="gold" />
-                <Text>Featured Jobs</Text>
-              </HStack>
-            </Heading>
-            <Button
-              variant="ghost"
-              colorScheme="blue"
-              onClick={() => navigate('/jobs')}
-            >
-              View All
-            </Button>
-          </HStack>
-
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-            {featuredJobs.map((job) => (
-              <JobCard key={job.id} job={job} />
-            ))}
-          </SimpleGrid>
-        </Box>
-      </VStack>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+          {featuredJobs.map((job) => (
+            <JobCard key={job.id} job={job} />
+          ))}
+        </SimpleGrid>
+      </Box>
     </Container>
   )
 }
