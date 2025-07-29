@@ -52,6 +52,7 @@ const FreeCoursesDashboard = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [courseToEdit, setCourseToEdit] = useState(null);
   const [editLoading, setEditLoading] = useState(false);
+  const [blog_slug, setBlogSlug] = useState("");
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { 
@@ -150,6 +151,7 @@ const FreeCoursesDashboard = () => {
         link: courseToEdit.link,
         provider: courseToEdit.provider,
         category: courseToEdit.category,
+        blog_slug: courseToEdit.blog_slug, // Use blog_slug
       })
       .eq('id', courseToEdit.id);
     
@@ -178,7 +180,7 @@ const FreeCoursesDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!title || !description || !link || !provider || !category) {
+    if (!title || !description || !link || !provider || !category || !blog_slug) {
       setError('All fields are required.');
       return;
     }
@@ -190,6 +192,7 @@ const FreeCoursesDashboard = () => {
         link,
         provider,
         category,
+        blog_slug, // Use blog_slug
       },
     ]);
     if (error) setError(error.message);
@@ -199,6 +202,7 @@ const FreeCoursesDashboard = () => {
       setLink('');
       setProvider('');
       setCategory('');
+      setBlogSlug("");
       fetchCourses();
       toast({
         title: 'Course posted!',
@@ -246,6 +250,14 @@ const FreeCoursesDashboard = () => {
                 </option>
               ))}
             </Select>
+            <Input
+              type="text"
+              placeholder="Blog Slug (from Blogs column)"
+              value={blog_slug}
+              onChange={(e) => setBlogSlug(e.target.value)}
+              size="md"
+              bg="gray.50"
+            />
             <Textarea
               placeholder="Description"
               value={description}
@@ -425,6 +437,14 @@ const FreeCoursesDashboard = () => {
                       </option>
                     ))}
                   </Select>
+                  <Input
+                    type="text"
+                    placeholder="Blog Slug (from Blogs column)"
+                    value={courseToEdit.blog_slug || ""}
+                    onChange={(e) => setCourseToEdit({ ...courseToEdit, blog_slug: e.target.value })}
+                    size="md"
+                    bg="gray.50"
+                  />
                   <Textarea
                     placeholder="Description"
                     value={courseToEdit.description}

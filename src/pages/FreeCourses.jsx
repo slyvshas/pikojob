@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { Wrap, WrapItem } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
@@ -30,6 +31,8 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { FaExternalLinkAlt, FaFilter, FaTimes } from 'react-icons/fa';
+import BlogSlideUp from '../components/BlogSlideUp';
+import { useAuth } from '../context/AuthContext';
 
 const FreeCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -38,6 +41,9 @@ const FreeCourses = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isOpen, onToggle } = useDisclosure();
   const cardBg = useColorModeValue('white', 'gray.800');
+  const { isAdmin } = useAuth();
+  const [blogSlideUpOpen, setBlogSlideUpOpen] = useState(false);
+  const [activeBlogSlug, setActiveBlogSlug] = useState(null);
 
   // Get filter values from URL
   const selectedCategories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
@@ -104,8 +110,14 @@ const FreeCourses = () => {
       
       {/* Filter Section */}
       <Box mb={8} bg={cardBg} borderRadius="lg" boxShadow="md" p={4}>
-        <Flex justify="space-between" align="center" mb={4}>
-          <HStack>
+        <Flex
+          justify="space-between"
+          align="center"
+          mb={4}
+          flexWrap="wrap"
+          gap={2}
+        >
+          <HStack flexWrap="wrap" gap={2} minWidth={0}>
             <Icon as={FaFilter} color="blue.500" />
             <Text fontWeight="bold">Filters</Text>
             {(selectedCategories.length > 0 || selectedProviders.length > 0) && (
@@ -114,7 +126,7 @@ const FreeCourses = () => {
               </Badge>
             )}
           </HStack>
-          <HStack>
+          <HStack flexWrap="wrap" gap={2} minWidth={0}>
             {(selectedCategories.length > 0 || selectedProviders.length > 0) && (
               <Button
                 size="sm"
@@ -190,25 +202,29 @@ const FreeCourses = () => {
       </Box>
 
       {/* Results Summary */}
-      <Flex justify="space-between" align="center" mb={6}>
-        <Text color="gray.600">
-          Showing {filteredCourses.length} of {courses.length} courses
-        </Text>
-        {(selectedCategories.length > 0 || selectedProviders.length > 0) && (
-          <HStack spacing={2}>
-            {selectedCategories.map((category) => (
-              <Badge key={category} colorScheme="blue" variant="subtle">
-                {category}
-              </Badge>
-            ))}
-            {selectedProviders.map((provider) => (
-              <Badge key={provider} colorScheme="green" variant="subtle">
-                {provider}
-              </Badge>
-            ))}
-          </HStack>
-        )}
-      </Flex>
+      <Flex justify="space-between" align="center" mb={6} flexWrap="wrap" gap={2}>
+  <Text color="gray.600" mb={2}>
+    Showing {filteredCourses.length} of {courses.length} courses
+  </Text>
+  {(selectedCategories.length > 0 || selectedProviders.length > 0) && (
+    <Wrap spacing={2} minWidth={0}>
+      {selectedCategories.map((category) => (
+        <WrapItem key={category}>
+          <Badge colorScheme="blue" variant="subtle">
+            {category}
+          </Badge>
+        </WrapItem>
+      ))}
+      {selectedProviders.map((provider) => (
+        <WrapItem key={provider}>
+          <Badge colorScheme="green" variant="subtle">
+            {provider}
+          </Badge>
+        </WrapItem>
+      ))}
+    </Wrap>
+  )}
+</Flex>
 
       {loading ? (
         <Text>Loading...</Text>
@@ -260,9 +276,19 @@ const FreeCourses = () => {
                         {course.category}
                       </Badge>
                     )}
+                    {isAdmin && course.blog_slug && (
+                      <Text fontSize="xs" color="yellow.200" mt={2}>
+                        Blog Slug: {course.blog_slug}
+                      </Text>
+                    )}
                   </Box>
                   <VStack align="end" spacing={1}>
                     {isNew && <Badge colorScheme="green">New</Badge>}
+                    {course.blog_slug && !isAdmin && (
+                      <Button size="xs" colorScheme="blue" variant="outline" onClick={() => { setActiveBlogSlug(course.blog_slug); setBlogSlideUpOpen(true); }}>
+                        Blog Info
+                      </Button>
+                    )}
                   </VStack>
                 </CardHeader>
                 <CardBody px={6} py={4}>
@@ -284,6 +310,7 @@ const FreeCourses = () => {
           })}
         </SimpleGrid>
       )}
+      <BlogSlideUp open={blogSlideUpOpen} slug={activeBlogSlug} onClose={() => setBlogSlideUpOpen(false)} />
     </Box>
   );
 };
