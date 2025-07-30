@@ -1,7 +1,6 @@
 User-agent: *
 Allow: /
 
-# Sitemap
 Sitemap: https://pikojob.netlify.app/sitemap.xml
 
 # Disallow admin pages (optional - uncomment if you want to hide admin pages from search engines)
