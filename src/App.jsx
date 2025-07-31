@@ -18,6 +18,7 @@ import BlogDetail from './pages/BlogDetail.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { theme } from './theme.js'
 import { supabase } from './lib/supabase.js'
+import { usePageTracking, useEngagementTracking } from './hooks/useAnalytics.js'
 
 // Protected Route component for admin access
 const ProtectedRoute = ({ children }) => {
@@ -35,6 +36,10 @@ const ProtectedRoute = ({ children }) => {
 }
 
 function App() {
+  // Initialize analytics tracking
+  usePageTracking();
+  useEngagementTracking();
+
   return (
     <React.StrictMode>
       <ChakraProvider theme={theme}>
