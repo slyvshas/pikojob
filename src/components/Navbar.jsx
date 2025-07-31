@@ -65,8 +65,8 @@ const Navbar = () => {
                   />
                 </>
               )}
-              <ChakraLink as={RouterLink} to="/saved-jobs">
-                Saved Jobs
+              <ChakraLink as={RouterLink} to="/saved-items">
+                Saved Items
               </ChakraLink>
               <Button onClick={() => signOut()} variant="outline">
                 Sign Out
@@ -159,8 +159,8 @@ const Navbar = () => {
                   </Button>
                 </VStack>
               )}
-              <ChakraLink as={RouterLink} to="/saved-jobs" onClick={() => setIsMenuOpen(false)}>
-                Saved Jobs
+              <ChakraLink as={RouterLink} to="/saved-items" onClick={() => setIsMenuOpen(false)}>
+                Saved Items
               </ChakraLink>
               <Button onClick={() => { signOut(); setIsMenuOpen(false) }} variant="outline" width="100%">
                 Sign Out

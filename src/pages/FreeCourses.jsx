@@ -29,21 +29,25 @@ import {
   useColorModeValue,
   Collapse,
   useDisclosure,
+  IconButton,
+  useToast,
 } from '@chakra-ui/react';
-import { FaExternalLinkAlt, FaFilter, FaTimes } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaFilter, FaTimes, FaBookmark, FaRegBookmark, FaBook } from 'react-icons/fa';
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
 
 const FreeCourses = () => {
   const [courses, setCourses] = useState([]);
+  const [savedCourses, setSavedCourses] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const { isOpen, onToggle } = useDisclosure();
   const cardBg = useColorModeValue('white', 'gray.800');
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [blogSlideUpOpen, setBlogSlideUpOpen] = useState(false);
   const [activeBlogSlug, setActiveBlogSlug] = useState(null);
+  const toast = useToast();
 
   // Get filter values from URL
   const selectedCategories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
@@ -68,7 +72,96 @@ const FreeCourses = () => {
       setLoading(false);
     };
     fetchCourses();
-  }, []);
+    
+    if (user) {
+      fetchSavedCourses();
+    }
+  }, [user]);
+
+  const fetchSavedCourses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('saved_courses')
+        .select('course_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const savedCourseIds = new Set(data.map(item => item.course_id));
+      setSavedCourses(savedCourseIds);
+    } catch (error) {
+      console.error('Error fetching saved courses:', error);
+    }
+  };
+
+  const handleSaveCourse = async (courseId) => {
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in to save courses',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      if (savedCourses.has(courseId)) {
+        // Unsave course
+        const { error } = await supabase
+          .from('saved_courses')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('course_id', courseId);
+
+        if (error) throw error;
+
+        setSavedCourses(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(courseId);
+          return newSet;
+        });
+
+        toast({
+          title: 'Course Unsaved',
+          description: 'Course has been removed from your saved courses',
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        // Save course
+        const { error } = await supabase
+          .from('saved_courses')
+          .insert({
+            user_id: user.id,
+            course_id: courseId,
+          });
+
+        if (error) throw error;
+
+        setSavedCourses(prev => new Set([...prev, courseId]));
+
+        toast({
+          title: 'Course Saved',
+          description: 'Course has been added to your saved courses',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error saving/unsaving course:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save/unsave course',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   // Filter courses based on selected filters
   const filteredCourses = useMemo(() => {
@@ -242,69 +335,172 @@ const FreeCourses = () => {
           )}
         </Box>
       ) : (
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
           {filteredCourses.map((course) => {
             const isNew = (Date.now() - new Date(course.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
             return (
               <Card
                 key={course.id}
-                boxShadow="lg"
-                borderRadius="2xl"
                 bg="white"
-                borderLeft="6px solid #3182ce"
-                transition="transform 0.2s, box-shadow 0.2s"
-                _hover={{ transform: 'translateY(-6px) scale(1.02)', boxShadow: '2xl' }}
-                p={0}
+                borderRadius="xl"
+                boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                transition="all 0.3s ease"
+                _hover={{ 
+                  transform: 'translateY(-4px)', 
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  borderColor: 'blue.200'
+                }}
+                border="1px solid"
+                borderColor="gray.100"
+                overflow="hidden"
+                position="relative"
               >
-                <CardHeader
-                  bgGradient="linear(to-r, blue.500, blue.300)"
-                  color="white"
-                  borderTopLeftRadius="2xl"
-                  borderTopRightRadius="2xl"
-                  py={4}
-                  px={6}
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  flexWrap="wrap"
-                >
-                  <Box>
-                    <Heading size="md">{course.title}</Heading>
-                    <Text fontSize="sm" color="whiteAlpha.800" mt={1}>{course.provider}</Text>
-                    {course.category && (
-                      <Badge colorScheme="purple" mt={2} fontSize="xs">
-                        {course.category}
-                      </Badge>
-                    )}
-                    {isAdmin && course.blog_slug && (
-                      <Text fontSize="xs" color="yellow.200" mt={2}>
-                        Blog Slug: {course.blog_slug}
-                      </Text>
-                    )}
-                  </Box>
-                  <VStack align="end" spacing={1}>
-                    {isNew && <Badge colorScheme="green">New</Badge>}
-                    {course.blog_slug && !isAdmin && (
-                      <Button size="xs" colorScheme="blue" variant="outline" onClick={() => { setActiveBlogSlug(course.blog_slug); setBlogSlideUpOpen(true); }}>
-                        Blog Info
-                      </Button>
-                    )}
-                  </VStack>
-                </CardHeader>
-                <CardBody px={6} py={4}>
-                  <Text mb={4} color="gray.700" fontSize="md" fontWeight="medium">
+                                 {/* Top Right Badges */}
+                 <Box
+                   position="absolute"
+                   top={3}
+                   right={3}
+                   zIndex={2}
+                   display="flex"
+                   gap={2}
+                 >
+                   {isNew && (
+                     <Badge 
+                       colorScheme="green" 
+                       variant="solid"
+                       borderRadius="full"
+                       px={2}
+                       py={1}
+                       fontSize="xs"
+                       fontWeight="medium"
+                     >
+                       New
+                     </Badge>
+                   )}
+                 </Box>
+
+                 {/* Save Button */}
+                 <Box
+                   position="absolute"
+                   top={3}
+                   left={3}
+                   zIndex={2}
+                 >
+                   <IconButton
+                     aria-label={savedCourses.has(course.id) ? 'Unsave course' : 'Save course'}
+                     icon={savedCourses.has(course.id) ? <FaBookmark /> : <FaRegBookmark />}
+                     colorScheme={savedCourses.has(course.id) ? 'blue' : 'gray'}
+                     variant="ghost"
+                     size="sm"
+                     bg="white"
+                     _hover={{ bg: 'gray.50' }}
+                     onClick={() => handleSaveCourse(course.id)}
+                   />
+                 </Box>
+
+                 {/* Course Content */}
+                 <Box p={6} pt={12}>
+                   {/* Category Badge */}
+                   {course.category && (
+                     <Badge 
+                       colorScheme="blue" 
+                       variant="subtle"
+                       fontSize="xs"
+                       mb={3}
+                       borderRadius="full"
+                       px={3}
+                       py={1}
+                     >
+                       {course.category}
+                     </Badge>
+                   )}
+
+                  {/* Title */}
+                  <Heading 
+                    size="md" 
+                    mb={2}
+                    color="gray.800"
+                    lineHeight="1.3"
+                    noOfLines={2}
+                  >
+                    {course.title}
+                  </Heading>
+
+                  {/* Provider */}
+                  <Text 
+                    fontSize="sm" 
+                    color="blue.600" 
+                    fontWeight="medium"
+                    mb={3}
+                  >
+                    {course.provider}
+                  </Text>
+
+                  {/* Description */}
+                  <Text 
+                    color="gray.600" 
+                    fontSize="sm" 
+                    lineHeight="1.5"
+                    mb={4}
+                    noOfLines={3}
+                  >
                     {course.description}
                   </Text>
-                  <Divider my={2} />
-                  <ChakraLink href={course.link} isExternal color="blue.500" fontWeight="bold" fontSize="md">
-                    Go to Course <Icon as={FaExternalLinkAlt} ml={1} />
-                  </ChakraLink>
-                </CardBody>
-                <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
-                  <Text fontSize="xs" color="gray.500">
-                    Posted on {new Date(course.created_at).toLocaleString()}
-                  </Text>
-                </CardFooter>
+
+                  {/* Admin Blog Slug */}
+                  {isAdmin && course.blog_slug && (
+                    <Text fontSize="xs" color="yellow.600" mb={3} fontFamily="mono">
+                      Blog: {course.blog_slug}
+                    </Text>
+                  )}
+
+                                                        {/* Buttons Row */}
+                   <HStack spacing={2} mt={4}>
+                                           {/* Blog Info Button - Prioritized */}
+                      {course.blog_slug && (
+                        <Button
+                          size="sm"
+                          colorScheme="blue"
+                          variant="solid"
+                          flex={1}
+                          leftIcon={<FaBook />}
+                          onClick={() => { 
+                            setActiveBlogSlug(course.blog_slug); 
+                            setBlogSlideUpOpen(true); 
+                          }}
+                          _hover={{ 
+                            bg: 'blue.600',
+                            transform: 'translateY(-1px)'
+                          }}
+                          boxShadow="md"
+                        >
+                          Learn More
+                        </Button>
+                      )}
+
+                      {/* Course Link - Compact */}
+                      <ChakraLink 
+                        href={course.link} 
+                        isExternal 
+                        _hover={{ textDecoration: 'none' }}
+                        flex={1}
+                      >
+                        <Button
+                          colorScheme="gray"
+                          variant="outline"
+                          size="sm"
+                          width="100%"
+                          rightIcon={<FaExternalLinkAlt />}
+                          _hover={{ 
+                            bg: 'gray.50',
+                            borderColor: 'gray.300'
+                          }}
+                        >
+                          Access Only
+                        </Button>
+                      </ChakraLink>
+                   </HStack>
+                </Box>
               </Card>
             );
           })}

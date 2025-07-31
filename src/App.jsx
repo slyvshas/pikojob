@@ -7,7 +7,7 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import JobList from './pages/JobList.jsx'
 import JobDetails from './pages/JobDetails.jsx'
-import SavedJobs from './pages/SavedJobs.jsx'
+import SavedItems from './pages/SavedItems.jsx'
 import CreateJob from './pages/CreateJob.jsx'
 import JobManagement from './pages/Admin/JobManagement.jsx'
 import FreeCoursesDashboard from './pages/Admin/FreeCoursesDashboard.jsx';
@@ -66,10 +66,10 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/jobs" element={<JobList />} />
             <Route path="/jobs/:id" element={<JobDetails />} />
-            <Route path="/saved-jobs" element={<SavedJobs />} />
-            <Route path="/free-courses" element={<FreeCourses />} />
-            <Route path="/blogs" element={<Blogs />} />
-            <Route path="/blogs/:slug" element={<BlogDetail />} />
+                                <Route path="/saved-items" element={<SavedItems />} />
+                    <Route path="/free-courses" element={<FreeCourses />} />
+                    <Route path="/blogs" element={<Blogs />} />
+                    <Route path="/blogs/:slug" element={<BlogDetail />} />
             <Route 
               path="/create-job" 
               element={

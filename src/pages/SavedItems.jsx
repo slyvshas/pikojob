@@ -88,7 +88,7 @@ const SavedItems = () => {
 
       setSavedJobs(data.map(item => ({
         ...item.job_postings,
-        saved_at: item.created_at
+        created_at: item.created_at
       })))
     } catch (error) {
       console.error('Error fetching saved jobs:', error)
@@ -104,30 +104,39 @@ const SavedItems = () => {
 
   const fetchSavedCourses = async () => {
     try {
-      const { data, error } = await supabase
+      // First get the saved course IDs
+      const { data: savedData, error: savedError } = await supabase
         .from('saved_courses')
-        .select(`
-          course_id,
-          created_at,
-          free_courses (
-            id,
-            title,
-            description,
-            provider,
-            category,
-            link,
-            created_at
-          )
-        `)
+        .select('course_id, saved_at')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('saved_at', { ascending: false })
 
-      if (error) throw error
+      if (savedError) throw savedError
 
-      setSavedCourses(data.map(item => ({
-        ...item.free_courses,
-        saved_at: item.created_at
-      })))
+      if (savedData.length === 0) {
+        setSavedCourses([])
+        return
+      }
+
+      // Then get the course details
+      const courseIds = savedData.map(item => item.course_id)
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('free_courses')
+        .select('*')
+        .in('id', courseIds)
+
+      if (coursesError) throw coursesError
+
+      // Combine the data
+      const coursesWithSavedAt = coursesData.map(course => {
+        const savedItem = savedData.find(item => item.course_id === course.id)
+        return {
+          ...course,
+          saved_at: savedItem.saved_at
+        }
+      })
+
+      setSavedCourses(coursesWithSavedAt)
     } catch (error) {
       console.error('Error fetching saved courses:', error)
       toast({
@@ -142,28 +151,39 @@ const SavedItems = () => {
 
   const fetchSavedBlogs = async () => {
     try {
-      const { data, error } = await supabase
+      // First get the saved blog slugs
+      const { data: savedData, error: savedError } = await supabase
         .from('saved_blogs')
-        .select(`
-          blog_slug,
-          created_at,
-          blogs (
-            slug,
-            title,
-            excerpt,
-            featured_image,
-            created_at
-          )
-        `)
+        .select('blog_slug, saved_at')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('saved_at', { ascending: false })
 
-      if (error) throw error
+      if (savedError) throw savedError
 
-      setSavedBlogs(data.map(item => ({
-        ...item.blogs,
-        saved_at: item.created_at
-      })))
+      if (savedData.length === 0) {
+        setSavedBlogs([])
+        return
+      }
+
+      // Then get the blog details
+      const blogSlugs = savedData.map(item => item.blog_slug)
+      const { data: blogsData, error: blogsError } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .in('slug', blogSlugs)
+
+      if (blogsError) throw blogsError
+
+      // Combine the data
+      const blogsWithSavedAt = blogsData.map(blog => {
+        const savedItem = savedData.find(item => item.blog_slug === blog.slug)
+        return {
+          ...blog,
+          saved_at: savedItem.saved_at
+        }
+      })
+
+      setSavedBlogs(blogsWithSavedAt)
     } catch (error) {
       console.error('Error fetching saved blogs:', error)
       toast({
@@ -516,19 +536,19 @@ const SavedItems = () => {
                         justifyContent="space-between"
                         flexWrap="wrap"
                       >
-                        <Box>
-                          <Heading size="md">{blog.title}</Heading>
-                          {blog.featured_image && (
-                            <Image
-                              src={blog.featured_image}
-                              alt={blog.title}
-                              boxSize="60px"
-                              objectFit="cover"
-                              borderRadius="md"
-                              mt={2}
-                            />
-                          )}
-                        </Box>
+                                                 <Box>
+                           <Heading size="md">{blog.title}</Heading>
+                           {blog.cover_image_url && (
+                             <Image
+                               src={blog.cover_image_url}
+                               alt={blog.title}
+                               boxSize="60px"
+                               objectFit="cover"
+                               borderRadius="md"
+                               mt={2}
+                             />
+                           )}
+                         </Box>
                         <IconButton
                           aria-label="Unsave blog"
                           icon={<FaBookmark />}
@@ -554,9 +574,9 @@ const SavedItems = () => {
                       </CardBody>
                       <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
                         <VStack align="start" spacing={1} width="100%">
-                          <Text fontSize="xs" color="gray.500">
-                            Posted on {new Date(blog.created_at).toLocaleString()}
-                          </Text>
+                                                     <Text fontSize="xs" color="gray.500">
+                             Posted on {new Date(blog.published_at).toLocaleString()}
+                           </Text>
                           <Text fontSize="xs" color="gray.500">
                             Saved on: {new Date(blog.saved_at).toLocaleDateString()}
                           </Text>

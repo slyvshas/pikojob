@@ -189,7 +189,7 @@ const Home = () => {
         width="100%"
         borderRadius="lg"
       >
-        View Job
+        View Internship
       </Button>
     </Box>
   )
@@ -199,15 +199,15 @@ const Home = () => {
       <Box>
         <VStack spacing={6} align="center">
           <Heading as="h1" size="2xl" textAlign="center">
-            Find Your Dream Job
+            Find Your Dream Career
           </Heading>
           <Text fontSize="xl" color="gray.600" textAlign="center">
-            Discover the best jobs and free learning resources to boost your career.
+            Discover the best Internships and free learning resources to boost your career.
           </Text>
           <VStack spacing={4} align="center" justify="center" width="100%">
             <HStack spacing={4} justify="center">
               <Button colorScheme="blue" size="lg" onClick={() => navigate('/jobs')}>
-                Browse Jobs
+                Browse Internships
               </Button>
               <Button colorScheme="blue" size="lg" onClick={() => navigate('/free-courses')}>
                 Free Courses
@@ -223,7 +223,7 @@ const Home = () => {
           <Heading size="lg">
             <HStack>
               <FaStar color="gold" />
-              <Text>Featured Jobs</Text>
+              <Text>Featured Internships</Text>
             </HStack>
           </Heading>
           <Button
