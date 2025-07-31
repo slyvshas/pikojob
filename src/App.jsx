@@ -36,70 +36,77 @@ const ProtectedRoute = ({ children }) => {
 }
 
 function App() {
-  // Initialize analytics tracking
-  usePageTracking();
-  useEngagementTracking();
-
   return (
     <React.StrictMode>
       <ChakraProvider theme={theme}>
         <AuthProvider>
           <Router>
-            <Box minH="100vh" display="flex" flexDirection="column">
-              <Navbar />
-              <Box flex="1" py={8}>
-                <Container maxW="container.xl">
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/jobs" element={<JobList />} />
-                    <Route path="/jobs/:id" element={<JobDetails />} />
-                    <Route path="/saved-jobs" element={<SavedJobs />} />
-                    <Route path="/free-courses" element={<FreeCourses />} />
-                    <Route path="/blogs" element={<Blogs />} />
-                    <Route path="/blogs/:slug" element={<BlogDetail />} />
-                    <Route 
-                      path="/create-job" 
-                      element={
-                        <ProtectedRoute>
-                          <CreateJob />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/admin/job-management" 
-                      element={
-                        <ProtectedRoute>
-                          <JobManagement />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/admin/free-courses" 
-                      element={
-                        <ProtectedRoute>
-                          <FreeCoursesDashboard />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/admin/blog-management" 
-                      element={
-                        <ProtectedRoute>
-                          <BlogManagement />
-                        </ProtectedRoute>
-                      } 
-                    />
-                  </Routes>
-                </Container>
-              </Box>
-            </Box>
+            <AppContent />
           </Router>
         </AuthProvider>
       </ChakraProvider>
     </React.StrictMode>
   )
+}
+
+// Separate component to use analytics hooks inside Router context
+function AppContent() {
+  // Initialize analytics tracking inside Router context
+  usePageTracking();
+  useEngagementTracking();
+
+  return (
+    <Box minH="100vh" display="flex" flexDirection="column">
+      <Navbar />
+      <Box flex="1" py={8}>
+        <Container maxW="container.xl">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/jobs" element={<JobList />} />
+            <Route path="/jobs/:id" element={<JobDetails />} />
+            <Route path="/saved-jobs" element={<SavedJobs />} />
+            <Route path="/free-courses" element={<FreeCourses />} />
+            <Route path="/blogs" element={<Blogs />} />
+            <Route path="/blogs/:slug" element={<BlogDetail />} />
+            <Route 
+              path="/create-job" 
+              element={
+                <ProtectedRoute>
+                  <CreateJob />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/job-management" 
+              element={
+                <ProtectedRoute>
+                  <JobManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/free-courses" 
+              element={
+                <ProtectedRoute>
+                  <FreeCoursesDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/blog-management" 
+              element={
+                <ProtectedRoute>
+                  <BlogManagement />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </Container>
+      </Box>
+    </Box>
+  );
 }
 
 export default App
