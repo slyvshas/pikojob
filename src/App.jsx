@@ -15,6 +15,10 @@ import FreeCourses from './pages/FreeCourses.jsx';
 import BlogManagement from './pages/Admin/BlogManagement.jsx';
 import Blogs from './pages/Blogs.jsx';
 import BlogDetail from './pages/BlogDetail.jsx';
+import Opportunities from './pages/Opportunities.jsx';
+import OpportunitiesDashboard from './pages/Admin/OpportunitiesDashboard.jsx';
+import FreeBooks from './pages/FreeBooks.jsx';
+import FreeBooksDashboard from './pages/Admin/FreeBooksDashboard.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { theme } from './theme.js'
 import { supabase } from './lib/supabase.js'
@@ -68,6 +72,8 @@ function AppContent() {
             <Route path="/jobs/:id" element={<JobDetails />} />
                                 <Route path="/saved-items" element={<SavedItems />} />
                     <Route path="/free-courses" element={<FreeCourses />} />
+                    <Route path="/free-books" element={<FreeBooks />} />
+                    <Route path="/opportunities" element={<Opportunities />} />
                     <Route path="/blogs" element={<Blogs />} />
                     <Route path="/blogs/:slug" element={<BlogDetail />} />
             <Route 
@@ -99,6 +105,22 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <BlogManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/opportunities" 
+              element={
+                <ProtectedRoute>
+                  <OpportunitiesDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/free-books" 
+              element={
+                <ProtectedRoute>
+                  <FreeBooksDashboard />
                 </ProtectedRoute>
               } 
             />

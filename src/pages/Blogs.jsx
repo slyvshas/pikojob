@@ -152,7 +152,7 @@ const Blogs = () => {
                   {blog.cover_image_url && (
                     <Image src={blog.cover_image_url} alt={blog.title} borderRadius="md" mb={3} maxH="180px" objectFit="cover" w="100%" />
                   )}
-                  <Heading size="md" mb={2}>{blog.title}</Heading>
+                  <Heading size="md" mb={2} pr={8}>{blog.title}</Heading>
                   <Text fontSize="sm" color="gray.600" mb={2}>{blog.excerpt}</Text>
                   <Divider my={2} />
                   <HStack justifyContent="space-between">

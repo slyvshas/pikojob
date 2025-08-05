@@ -27,7 +27,7 @@ import {
   Tab,
   TabPanel,
 } from '@chakra-ui/react'
-import { FaBookmark, FaMapMarkerAlt, FaBriefcase, FaMoneyBillWave, FaExternalLinkAlt, FaNewspaper } from 'react-icons/fa'
+import { FaBookmark, FaMapMarkerAlt, FaBriefcase, FaMoneyBillWave, FaExternalLinkAlt, FaNewspaper, FaBook } from 'react-icons/fa'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
@@ -35,6 +35,8 @@ const SavedItems = () => {
   const [savedJobs, setSavedJobs] = useState([])
   const [savedCourses, setSavedCourses] = useState([])
   const [savedBlogs, setSavedBlogs] = useState([])
+  const [savedBooks, setSavedBooks] = useState([])
+  const [savedOpportunities, setSavedOpportunities] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const toast = useToast()
@@ -54,7 +56,9 @@ const SavedItems = () => {
       await Promise.all([
         fetchSavedJobs(),
         fetchSavedCourses(),
-        fetchSavedBlogs()
+        fetchSavedBlogs(),
+        fetchSavedBooks(),
+        fetchSavedOpportunities()
       ])
     } catch (error) {
       console.error('Error fetching saved items:', error)
@@ -196,6 +200,100 @@ const SavedItems = () => {
     }
   }
 
+  const fetchSavedBooks = async () => {
+    try {
+      // First get the saved book IDs
+      const { data: savedData, error: savedError } = await supabase
+        .from('saved_books')
+        .select('book_id, saved_at')
+        .eq('user_id', user.id)
+        .order('saved_at', { ascending: false })
+
+      if (savedError) throw savedError
+
+      if (savedData.length === 0) {
+        setSavedBooks([])
+        return
+      }
+
+      // Then get the book details
+      const bookIds = savedData.map(item => item.book_id)
+      const { data: booksData, error: booksError } = await supabase
+        .from('free_books')
+        .select('*')
+        .in('id', bookIds)
+
+      if (booksError) throw booksError
+
+      // Combine the data
+      const booksWithSavedAt = booksData.map(book => {
+        const savedItem = savedData.find(item => item.book_id === book.id)
+        return {
+          ...book,
+          saved_at: savedItem.saved_at
+        }
+      })
+
+      setSavedBooks(booksWithSavedAt)
+    } catch (error) {
+      console.error('Error fetching saved books:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to load saved books',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const fetchSavedOpportunities = async () => {
+    try {
+      // First get the saved opportunity IDs
+      const { data: savedData, error: savedError } = await supabase
+        .from('saved_opportunities')
+        .select('opportunity_id, saved_at')
+        .eq('user_id', user.id)
+        .order('saved_at', { ascending: false })
+
+      if (savedError) throw savedError
+
+      if (savedData.length === 0) {
+        setSavedOpportunities([])
+        return
+      }
+
+      // Then get the opportunity details
+      const opportunityIds = savedData.map(item => item.opportunity_id)
+      const { data: opportunitiesData, error: opportunitiesError } = await supabase
+        .from('opportunities')
+        .select('*')
+        .in('id', opportunityIds)
+
+      if (opportunitiesError) throw opportunitiesError
+
+      // Combine the data
+      const opportunitiesWithSavedAt = opportunitiesData.map(opportunity => {
+        const savedItem = savedData.find(item => item.opportunity_id === opportunity.id)
+        return {
+          ...opportunity,
+          saved_at: savedItem.saved_at
+        }
+      })
+
+      setSavedOpportunities(opportunitiesWithSavedAt)
+    } catch (error) {
+      console.error('Error fetching saved opportunities:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to load saved opportunities',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
   const handleUnsaveJob = async (jobId) => {
     try {
       const { error } = await supabase
@@ -289,6 +387,68 @@ const SavedItems = () => {
     }
   }
 
+  const handleUnsaveBook = async (bookId) => {
+    try {
+      const { error } = await supabase
+        .from('saved_books')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('book_id', bookId)
+
+      if (error) throw error
+
+      setSavedBooks(prev => prev.filter(book => book.id !== bookId))
+
+      toast({
+        title: 'Book Unsaved',
+        description: 'Book has been removed from your saved items',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      console.error('Error unsaving book:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to unsave book',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const handleUnsaveOpportunity = async (opportunityId) => {
+    try {
+      const { error } = await supabase
+        .from('saved_opportunities')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('opportunity_id', opportunityId)
+
+      if (error) throw error
+
+      setSavedOpportunities(prev => prev.filter(opportunity => opportunity.id !== opportunityId))
+
+      toast({
+        title: 'Opportunity Unsaved',
+        description: 'Opportunity has been removed from your saved items',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      console.error('Error unsaving opportunity:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to unsave opportunity',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
   if (!user) {
     return (
       <Container maxW="container.md" py={8}>
@@ -300,7 +460,7 @@ const SavedItems = () => {
     )
   }
 
-  const totalSavedItems = savedJobs.length + savedCourses.length + savedBlogs.length
+  const totalSavedItems = savedJobs.length + savedCourses.length + savedBlogs.length + savedBooks.length + savedOpportunities.length
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -325,6 +485,18 @@ const SavedItems = () => {
               <HStack>
                 <FaNewspaper />
                 <Text>Blogs ({savedBlogs.length})</Text>
+              </HStack>
+            </Tab>
+            <Tab>
+              <HStack>
+                <FaBook />
+                <Text>Books ({savedBooks.length})</Text>
+              </HStack>
+            </Tab>
+            <Tab>
+              <HStack>
+                <FaMoneyBillWave />
+                <Text>Opportunities ({savedOpportunities.length})</Text>
               </HStack>
             </Tab>
           </TabList>
@@ -584,6 +756,221 @@ const SavedItems = () => {
                       </CardFooter>
                     </Card>
                   ))}
+                </SimpleGrid>
+              )}
+            </TabPanel>
+
+            {/* Books Tab */}
+            <TabPanel>
+              {loading ? (
+                <Text>Loading saved books...</Text>
+              ) : savedBooks.length === 0 ? (
+                <Text>You haven't saved any books yet.</Text>
+              ) : (
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                  {savedBooks.map((book) => {
+                    const isNew = (Date.now() - new Date(book.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
+                    
+                    return (
+                      <Card
+                        key={book.id}
+                        boxShadow="lg"
+                        borderRadius="2xl"
+                        bg="white"
+                        borderLeft="6px solid #3182ce"
+                        transition="transform 0.2s, box-shadow 0.2s"
+                        _hover={{ transform: 'translateY(-6px) scale(1.02)', boxShadow: '2xl' }}
+                        p={0}
+                      >
+                        <CardHeader
+                          bgGradient="linear(to-r, blue.500, blue.300)"
+                          color="white"
+                          borderTopLeftRadius="2xl"
+                          borderTopRightRadius="2xl"
+                          py={4}
+                          px={6}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          flexWrap="wrap"
+                        >
+                          <Box>
+                            <Heading size="md">{book.title}</Heading>
+                            {book.author && (
+                              <Text fontSize="sm" color="whiteAlpha.800" mt={1}>
+                                by {book.author}
+                              </Text>
+                            )}
+                            {book.category && (
+                              <Badge colorScheme="purple" mt={2} fontSize="xs">
+                                {book.category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </Badge>
+                            )}
+                          </Box>
+                          <VStack align="end" spacing={1}>
+                            {isNew && <Badge colorScheme="green">New</Badge>}
+                            <IconButton
+                              aria-label="Unsave book"
+                              icon={<FaBookmark />}
+                              colorScheme="blue"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleUnsaveBook(book.id)}
+                            />
+                          </VStack>
+                        </CardHeader>
+                        <CardBody px={6} py={4}>
+                          {book.cover_image_url && (
+                            <Box mb={4} textAlign="center">
+                              <Image
+                                src={book.cover_image_url}
+                                alt={book.title}
+                                maxH="120px"
+                                objectFit="contain"
+                                borderRadius="md"
+                                mx="auto"
+                              />
+                            </Box>
+                          )}
+                          <Text mb={4} color="gray.700" fontSize="md" fontWeight="medium">
+                            {book.description}
+                          </Text>
+                          <HStack spacing={4} fontSize="xs" color="gray.500" mb={3}>
+                            {book.pages && (
+                              <Text>{book.pages} pages</Text>
+                            )}
+                            {book.language && (
+                              <Text>{book.language}</Text>
+                            )}
+                            {book.format && (
+                              <Badge colorScheme="purple" variant="subtle" fontSize="xs">
+                                {book.format.toUpperCase()}
+                              </Badge>
+                            )}
+                          </HStack>
+                          <Divider my={2} />
+                          <ChakraLink href={book.link} isExternal color="blue.500" fontWeight="bold" fontSize="md">
+                            Download Book <Icon as={FaExternalLinkAlt} ml={1} />
+                          </ChakraLink>
+                        </CardBody>
+                        <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
+                          <VStack align="start" spacing={1} width="100%">
+                            <Text fontSize="xs" color="gray.500">
+                              Posted on {new Date(book.created_at).toLocaleString()}
+                            </Text>
+                            <Text fontSize="xs" color="gray.500">
+                              Saved on: {new Date(book.saved_at).toLocaleDateString()}
+                            </Text>
+                          </VStack>
+                        </CardFooter>
+                      </Card>
+                    );
+                  })}
+                </SimpleGrid>
+              )}
+            </TabPanel>
+
+            {/* Opportunities Tab */}
+            <TabPanel>
+              {loading ? (
+                <Text>Loading saved opportunities...</Text>
+              ) : savedOpportunities.length === 0 ? (
+                <Text>You haven't saved any opportunities yet.</Text>
+              ) : (
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                  {savedOpportunities.map((opportunity) => {
+                    const deadlineApproaching = opportunity.deadline && (new Date(opportunity.deadline) - new Date()) <= 30 * 24 * 60 * 60 * 1000 && (new Date(opportunity.deadline) - new Date()) >= 0;
+                    const deadlinePassed = opportunity.deadline && new Date(opportunity.deadline) < new Date();
+                    
+                    return (
+                      <Card
+                        key={opportunity.id}
+                        boxShadow="lg"
+                        borderRadius="2xl"
+                        bg="white"
+                        borderLeft="6px solid #805ad5"
+                        transition="transform 0.2s, box-shadow 0.2s"
+                        _hover={{ transform: 'translateY(-6px) scale(1.02)', boxShadow: '2xl' }}
+                        p={0}
+                      >
+                        <CardHeader
+                          bgGradient="linear(to-r, purple.500, purple.300)"
+                          color="white"
+                          borderTopLeftRadius="2xl"
+                          borderTopRightRadius="2xl"
+                          py={4}
+                          px={6}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          flexWrap="wrap"
+                        >
+                          <Box>
+                            <Heading size="md">{opportunity.title}</Heading>
+                            {opportunity.organization && (
+                              <Text fontSize="sm" mt={1}>
+                                {opportunity.organization}
+                              </Text>
+                            )}
+                          </Box>
+                          <IconButton
+                            aria-label="Unsave opportunity"
+                            icon={<FaBookmark />}
+                            colorScheme="purple"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUnsaveOpportunity(opportunity.id)}
+                          />
+                        </CardHeader>
+                        <CardBody px={6} py={4}>
+                          <VStack align="start" spacing={3}>
+                            {opportunity.category && (
+                              <Badge colorScheme="purple" variant="subtle" fontSize="xs">
+                                {opportunity.category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </Badge>
+                            )}
+                            {opportunity.location && (
+                              <HStack spacing={1}>
+                                <Icon as={FaMapMarkerAlt} color="gray.500" fontSize="xs" />
+                                <Text fontSize="xs" color="gray.600">
+                                  {opportunity.location}
+                                </Text>
+                              </HStack>
+                            )}
+                            {opportunity.deadline && (
+                              <HStack spacing={1}>
+                                <Icon as={FaCalendarAlt} color="gray.500" fontSize="xs" />
+                                <Text fontSize="xs" color={deadlinePassed ? 'red.500' : deadlineApproaching ? 'orange.500' : 'gray.600'}>
+                                  Deadline: {new Date(opportunity.deadline).toLocaleDateString()}
+                                </Text>
+                              </HStack>
+                            )}
+                            <Text color="gray.700" fontSize="sm" noOfLines={3}>
+                              {opportunity.description}
+                            </Text>
+                          </VStack>
+                        </CardBody>
+                        <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
+                          <VStack align="start" spacing={1} width="100%">
+                            <Button
+                              as={ChakraLink}
+                              href={opportunity.link}
+                              isExternal
+                              colorScheme="purple"
+                              size="sm"
+                              width="100%"
+                              isDisabled={deadlinePassed}
+                            >
+                              Apply Now
+                            </Button>
+                            <Text fontSize="xs" color="gray.500">
+                              Saved on: {new Date(opportunity.saved_at).toLocaleDateString()}
+                            </Text>
+                          </VStack>
+                        </CardFooter>
+                      </Card>
+                    );
+                  })}
                 </SimpleGrid>
               )}
             </TabPanel>

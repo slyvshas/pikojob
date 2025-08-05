@@ -1,9 +1,24 @@
 import { useState } from 'react'
-import { Box, Flex, Button, Link as ChakraLink, useColorModeValue, IconButton, Collapse, VStack } from '@chakra-ui/react'
+import { 
+  Box, 
+  Flex, 
+  Button, 
+  Link as ChakraLink, 
+  useColorModeValue, 
+  IconButton, 
+  Collapse, 
+  VStack,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
+  useDisclosure
+} from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
-import { FaPlus, FaList, FaBookOpen, FaEdit } from 'react-icons/fa'
+import { HamburgerIcon, CloseIcon, ChevronDownIcon } from '@chakra-ui/icons'
+import { FaPlus, FaList, FaBookOpen, FaEdit, FaMoneyBillWave, FaBook, FaCog } from 'react-icons/fa'
 
 const Navbar = () => {
   const { user, signOut, isAdmin, loading } = useAuth()
@@ -27,6 +42,12 @@ const Navbar = () => {
           <ChakraLink as={RouterLink} to="/free-courses">
             Free Courses
           </ChakraLink>
+          <ChakraLink as={RouterLink} to="/free-books">
+            Free Books
+          </ChakraLink>
+          <ChakraLink as={RouterLink} to="/opportunities">
+            Opportunities
+          </ChakraLink>
           <ChakraLink as={RouterLink} to="/blogs">
             Blogs
           </ChakraLink>
@@ -34,36 +55,39 @@ const Navbar = () => {
           {user && !loading ? (
             <>
               {isAdmin && (
-                <>
-                  <IconButton
-                    as={RouterLink}
-                    to="/create-job"
-                    icon={<FaPlus />}
-                    aria-label="Create Job"
+                <Menu>
+                  <MenuButton
+                    as={Button}
+                    rightIcon={<ChevronDownIcon />}
+                    leftIcon={<FaCog />}
                     variant="ghost"
-                  />
-                  <IconButton
-                    as={RouterLink}
-                    to="/admin/job-management"
-                    icon={<FaList />}
-                    aria-label="Job Management"
-                    variant="ghost"
-                  />
-                  <IconButton
-                    as={RouterLink}
-                    to="/admin/free-courses"
-                    icon={<FaBookOpen />}
-                    aria-label="Free Courses"
-                    variant="ghost"
-                  />
-                  <IconButton
-                    as={RouterLink}
-                    to="/admin/blog-management"
-                    icon={<FaEdit />}
-                    aria-label="Blog Management"
-                    variant="ghost"
-                  />
-                </>
+                    colorScheme="blue"
+                  >
+                    Admin Dashboard
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem as={RouterLink} to="/create-job" icon={<FaPlus />}>
+                      Create Job
+                    </MenuItem>
+                    <MenuItem as={RouterLink} to="/admin/job-management" icon={<FaList />}>
+                      Job Management
+                    </MenuItem>
+                    <MenuDivider />
+                    <MenuItem as={RouterLink} to="/admin/free-courses" icon={<FaBookOpen />}>
+                      Free Courses
+                    </MenuItem>
+                    <MenuItem as={RouterLink} to="/admin/free-books" icon={<FaBook />}>
+                      Free Books
+                    </MenuItem>
+                    <MenuItem as={RouterLink} to="/admin/opportunities" icon={<FaMoneyBillWave />}>
+                      Opportunities
+                    </MenuItem>
+                    <MenuDivider />
+                    <MenuItem as={RouterLink} to="/admin/blog-management" icon={<FaEdit />}>
+                      Blog Management
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
               )}
               <ChakraLink as={RouterLink} to="/saved-items">
                 Saved Items
@@ -114,6 +138,12 @@ const Navbar = () => {
           <ChakraLink as={RouterLink} to="/free-courses" onClick={() => setIsMenuOpen(false)}>
             Free Courses
           </ChakraLink>
+          <ChakraLink as={RouterLink} to="/free-books" onClick={() => setIsMenuOpen(false)}>
+            Free Books
+          </ChakraLink>
+          <ChakraLink as={RouterLink} to="/opportunities" onClick={() => setIsMenuOpen(false)}>
+            Opportunities
+          </ChakraLink>
           <ChakraLink as={RouterLink} to="/blogs" onClick={() => setIsMenuOpen(false)}>
             Blogs
           </ChakraLink>
@@ -121,42 +151,40 @@ const Navbar = () => {
             <>
               {isAdmin && (
                 <VStack spacing={3} width="100%">
-                  <Button
-                     as={RouterLink}
-                     to="/create-job"
-                     leftIcon={<FaPlus />}
-                     onClick={() => setIsMenuOpen(false)}
-                     width="100%"
-                  >
-                    Create Job
-                  </Button>
-                  <Button
-                    as={RouterLink}
-                    to="/admin/job-management"
-                    leftIcon={<FaList />}
-                    onClick={() => setIsMenuOpen(false)}
-                    width="100%"
-                  >
-                    Job Management
-                  </Button>
-                  <Button
-                    as={RouterLink}
-                    to="/admin/free-courses"
-                    leftIcon={<FaBookOpen />}
-                    onClick={() => setIsMenuOpen(false)}
-                    width="100%"
-                  >
-                    Free Courses
-                  </Button>
-                  <Button
-                    as={RouterLink}
-                    to="/admin/blog-management"
-                    leftIcon={<FaEdit />}
-                    onClick={() => setIsMenuOpen(false)}
-                    width="100%"
-                  >
-                    Blog Management
-                  </Button>
+                  <Menu>
+                    <MenuButton
+                      as={Button}
+                      rightIcon={<ChevronDownIcon />}
+                      leftIcon={<FaCog />}
+                      variant="outline"
+                      colorScheme="blue"
+                      width="100%"
+                    >
+                      Admin Dashboard
+                    </MenuButton>
+                    <MenuList>
+                      <MenuItem as={RouterLink} to="/create-job" icon={<FaPlus />} onClick={() => setIsMenuOpen(false)}>
+                        Create Job
+                      </MenuItem>
+                      <MenuItem as={RouterLink} to="/admin/job-management" icon={<FaList />} onClick={() => setIsMenuOpen(false)}>
+                        Job Management
+                      </MenuItem>
+                      <MenuDivider />
+                      <MenuItem as={RouterLink} to="/admin/free-courses" icon={<FaBookOpen />} onClick={() => setIsMenuOpen(false)}>
+                        Free Courses
+                      </MenuItem>
+                      <MenuItem as={RouterLink} to="/admin/free-books" icon={<FaBook />} onClick={() => setIsMenuOpen(false)}>
+                        Free Books
+                      </MenuItem>
+                      <MenuItem as={RouterLink} to="/admin/opportunities" icon={<FaMoneyBillWave />} onClick={() => setIsMenuOpen(false)}>
+                        Opportunities
+                      </MenuItem>
+                      <MenuDivider />
+                      <MenuItem as={RouterLink} to="/admin/blog-management" icon={<FaEdit />} onClick={() => setIsMenuOpen(false)}>
+                        Blog Management
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
                 </VStack>
               )}
               <ChakraLink as={RouterLink} to="/saved-items" onClick={() => setIsMenuOpen(false)}>
