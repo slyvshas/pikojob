@@ -27,7 +27,7 @@ import {
   Tab,
   TabPanel,
 } from '@chakra-ui/react'
-import { FaBookmark, FaMapMarkerAlt, FaBriefcase, FaMoneyBillWave, FaExternalLinkAlt, FaNewspaper, FaBook } from 'react-icons/fa'
+import { FaBookmark, FaMapMarkerAlt, FaBriefcase, FaMoneyBillWave, FaExternalLinkAlt, FaNewspaper, FaBook, FaCalendarAlt } from 'react-icons/fa'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
@@ -40,15 +40,18 @@ const SavedItems = () => {
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const toast = useToast()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login')
-      return
+    if (authLoading) return; // Wait for auth to finish loading
+    if (!user && !authLoading) {
+      navigate('/login');
+      return;
     }
-    fetchAllSavedItems()
-  }, [user, navigate])
+    if (user) {
+      fetchAllSavedItems();
+    }
+  }, [user, authLoading, navigate]);
 
   const fetchAllSavedItems = async () => {
     setLoading(true)

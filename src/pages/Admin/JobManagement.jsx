@@ -45,6 +45,7 @@ const JobManagement = () => {
     title: '',
     company_name: '',
     company_logo_url: '',
+    company_description_short: '',
     location: '',
     employment_type: '',
     salary: '',
@@ -53,6 +54,14 @@ const JobManagement = () => {
     external_apply_link: '',
     tags: '',
     is_featured: 'false',
+    // Quick Info fields
+    industry: '',
+    experience_level: '',
+    company_size: '',
+    work_mode: '',
+    benefits: '',
+    skills: '',
+    deadline: '',
   })
 
   useEffect(() => {
@@ -94,11 +103,30 @@ const JobManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      // Prepare quick_info object
+      const quickInfo = {}
+      if (formData.industry) quickInfo.industry = formData.industry
+      if (formData.experience_level) quickInfo.experience_level = formData.experience_level
+      if (formData.company_size) quickInfo.company_size = formData.company_size
+      if (formData.work_mode) quickInfo.work_mode = formData.work_mode
+      if (formData.benefits) quickInfo.benefits = formData.benefits.split(',').map(b => b.trim()).filter(b => b)
+      if (formData.skills) quickInfo.skills = formData.skills.split(',').map(s => s.trim()).filter(s => s)
+      if (formData.deadline) quickInfo.deadline = formData.deadline
+
       const jobData = {
         ...formData,
         is_featured: formData.is_featured === 'true',
         created_by: user.id,
-        requirements: formData.requirements || null
+        requirements: formData.requirements || null,
+        quick_info: Object.keys(quickInfo).length > 0 ? quickInfo : null,
+        // Remove quick info fields from main data
+        industry: undefined,
+        experience_level: undefined,
+        company_size: undefined,
+        work_mode: undefined,
+        benefits: undefined,
+        skills: undefined,
+        deadline: undefined,
       }
 
       if (editingJob) {
@@ -152,10 +180,13 @@ const JobManagement = () => {
 
   const handleEdit = (job) => {
     setEditingJob(job)
+    const quickInfo = job.quick_info || {}
+    
     setFormData({
       title: job.title,
       company_name: job.company_name,
       company_logo_url: job.company_logo_url,
+      company_description_short: job.company_description_short || '',
       location: job.location,
       employment_type: job.employment_type,
       salary: job.salary,
@@ -164,6 +195,14 @@ const JobManagement = () => {
       external_apply_link: job.external_apply_link,
       tags: job.tags,
       is_featured: job.is_featured ? 'true' : 'false',
+      // Quick Info fields
+      industry: quickInfo.industry || '',
+      experience_level: quickInfo.experience_level || '',
+      company_size: quickInfo.company_size || '',
+      work_mode: quickInfo.work_mode || '',
+      benefits: quickInfo.benefits ? quickInfo.benefits.join(', ') : '',
+      skills: quickInfo.skills ? quickInfo.skills.join(', ') : '',
+      deadline: quickInfo.deadline || '',
     })
     onOpen()
   }
@@ -206,6 +245,7 @@ const JobManagement = () => {
       title: '',
       company_name: '',
       company_logo_url: '',
+      company_description_short: '',
       location: '',
       employment_type: '',
       salary: '',
@@ -214,6 +254,14 @@ const JobManagement = () => {
       external_apply_link: '',
       tags: '',
       is_featured: 'false',
+      // Quick Info fields
+      industry: '',
+      experience_level: '',
+      company_size: '',
+      work_mode: '',
+      benefits: '',
+      skills: '',
+      deadline: '',
     })
   }
 
@@ -318,6 +366,17 @@ const JobManagement = () => {
                     />
                   </FormControl>
 
+                  <FormControl>
+                    <FormLabel>Company Description (Short)</FormLabel>
+                    <Textarea
+                      name="company_description_short"
+                      value={formData.company_description_short}
+                      onChange={handleInputChange}
+                      placeholder="A brief description of the company..."
+                      rows={2}
+                    />
+                  </FormControl>
+
                   <FormControl isRequired>
                     <FormLabel>Location</FormLabel>
                     <Input
@@ -388,6 +447,109 @@ const JobManagement = () => {
                       placeholder="e.g., React, Node.js, Python"
                     />
                   </FormControl>
+
+                  {/* Quick Info Section */}
+                  <Box w="100%" p={4} bg="gray.50" borderRadius="md">
+                    <Text fontWeight="semibold" mb={3} color="gray.700">Quick Info (Optional)</Text>
+                    <Text fontSize="sm" color="gray.600" mb={4}>
+                      These fields will be displayed in the job details sidebar to provide quick information to job seekers.
+                    </Text>
+                    
+                    <VStack spacing={3}>
+                      <FormControl>
+                        <FormLabel fontSize="sm">Industry</FormLabel>
+                        <Input
+                          name="industry"
+                          value={formData.industry}
+                          onChange={handleInputChange}
+                          placeholder="e.g., Technology, Healthcare, Finance"
+                          size="sm"
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel fontSize="sm">Experience Level</FormLabel>
+                        <Select
+                          name="experience_level"
+                          value={formData.experience_level}
+                          onChange={handleInputChange}
+                          size="sm"
+                        >
+                          <option value="">Select Experience Level</option>
+                          <option value="Entry Level">Entry Level</option>
+                          <option value="Mid Level">Mid Level</option>
+                          <option value="Senior Level">Senior Level</option>
+                          <option value="Executive">Executive</option>
+                        </Select>
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel fontSize="sm">Company Size</FormLabel>
+                        <Select
+                          name="company_size"
+                          value={formData.company_size}
+                          onChange={handleInputChange}
+                          size="sm"
+                        >
+                          <option value="">Select Company Size</option>
+                          <option value="1-10 employees">1-10 employees</option>
+                          <option value="11-50 employees">11-50 employees</option>
+                          <option value="51-200 employees">51-200 employees</option>
+                          <option value="201-500 employees">201-500 employees</option>
+                          <option value="501-1000 employees">501-1000 employees</option>
+                          <option value="1000+ employees">1000+ employees</option>
+                        </Select>
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel fontSize="sm">Work Mode</FormLabel>
+                        <Select
+                          name="work_mode"
+                          value={formData.work_mode}
+                          onChange={handleInputChange}
+                          size="sm"
+                        >
+                          <option value="">Select Work Mode</option>
+                          <option value="Remote">Remote</option>
+                          <option value="On-site">On-site</option>
+                          <option value="Hybrid">Hybrid</option>
+                        </Select>
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel fontSize="sm">Benefits (comma-separated)</FormLabel>
+                        <Input
+                          name="benefits"
+                          value={formData.benefits}
+                          onChange={handleInputChange}
+                          placeholder="e.g., Health Insurance, 401k, Flexible Hours"
+                          size="sm"
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel fontSize="sm">Required Skills (comma-separated)</FormLabel>
+                        <Input
+                          name="skills"
+                          value={formData.skills}
+                          onChange={handleInputChange}
+                          placeholder="e.g., React, Node.js, PostgreSQL"
+                          size="sm"
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel fontSize="sm">Application Deadline</FormLabel>
+                        <Input
+                          name="deadline"
+                          type="date"
+                          value={formData.deadline}
+                          onChange={handleInputChange}
+                          size="sm"
+                        />
+                      </FormControl>
+                    </VStack>
+                  </Box>
 
                   <FormControl>
                     <FormLabel>Featured Job</FormLabel>

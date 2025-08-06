@@ -361,7 +361,7 @@ const FreeCourses = () => {
                    top={3}
                    right={3}
                    zIndex={2}
-                   display="flex"
+                  display="flex"
                    gap={2}
                  >
                    {isNew && (
@@ -401,7 +401,7 @@ const FreeCourses = () => {
                  {/* Course Content */}
                  <Box p={6} pt={12}>
                    {/* Category Badge */}
-                   {course.category && (
+                    {course.category && (
                      <Badge 
                        colorScheme="blue" 
                        variant="subtle"
@@ -411,9 +411,9 @@ const FreeCourses = () => {
                        px={3}
                        py={1}
                      >
-                       {course.category}
-                     </Badge>
-                   )}
+                        {course.category}
+                      </Badge>
+                    )}
 
                   {/* Title */}
                   <Heading 
@@ -434,7 +434,7 @@ const FreeCourses = () => {
                     mb={3}
                   >
                     {course.provider}
-                  </Text>
+                      </Text>
 
                   {/* Description */}
                   <Text 
@@ -498,7 +498,7 @@ const FreeCourses = () => {
                         >
                           Access Only
                         </Button>
-                      </ChakraLink>
+                  </ChakraLink>
                    </HStack>
                 </Box>
               </Card>

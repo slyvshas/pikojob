@@ -35,21 +35,19 @@ const SavedItems = () => {
   const [savedJobs, setSavedJobs] = useState([])
   const [savedCourses, setSavedCourses] = useState([])
   const [savedBlogs, setSavedBlogs] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [localLoading, setLocalLoading] = useState(true)
   const navigate = useNavigate()
   const toast = useToast()
-  const { user } = useAuth()
-
+  const { user, loading } = useAuth();
   useEffect(() => {
-    if (!user) {
-      navigate('/login')
-      return
+    if (loading) return; // Wait for auth to finish loading
+    if (user && !loading) {
+      fetchAllSavedItems();
     }
-    fetchAllSavedItems()
-  }, [user, navigate])
+  }, [user, loading]);
 
   const fetchAllSavedItems = async () => {
-    setLoading(true)
+    setLocalLoading(true)
     try {
       await Promise.all([
         fetchSavedJobs(),
@@ -59,7 +57,7 @@ const SavedItems = () => {
     } catch (error) {
       console.error('Error fetching saved items:', error)
     } finally {
-      setLoading(false)
+      setLocalLoading(false)
     }
   }
 
@@ -269,15 +267,24 @@ const SavedItems = () => {
     }
   }
 
-  if (!user) {
+  if (loading) {
     return (
       <Container maxW="container.md" py={8}>
         <Box textAlign="center">
-          <Heading size="lg">Please sign in to view your saved items</Heading>
+          <Heading size="lg">Loading...</Heading>
+        </Box>
+      </Container>
+    );
+  }
+  if (!user && !loading) {
+    return (
+      <Container maxW="container.md" py={8}>
+        <Box textAlign="center">
+          <Heading size="lg">You must be signed in to view your saved items.</Heading>
           <Button mt={4} onClick={() => navigate('/login')}>Sign In</Button>
         </Box>
       </Container>
-    )
+    );
   }
 
   const totalSavedItems = savedJobs.length + savedCourses.length + savedBlogs.length
@@ -312,7 +319,7 @@ const SavedItems = () => {
           <TabPanels>
             {/* Jobs Tab */}
             <TabPanel>
-              {loading ? (
+              {localLoading ? (
                 <Text>Loading saved jobs...</Text>
               ) : savedJobs.length === 0 ? (
                 <Text>You haven't saved any jobs yet.</Text>
@@ -407,7 +414,7 @@ const SavedItems = () => {
 
             {/* Courses Tab */}
             <TabPanel>
-              {loading ? (
+              {localLoading ? (
                 <Text>Loading saved courses...</Text>
               ) : savedCourses.length === 0 ? (
                 <Text>You haven't saved any courses yet.</Text>
@@ -487,7 +494,7 @@ const SavedItems = () => {
 
             {/* Blogs Tab */}
             <TabPanel>
-              {loading ? (
+              {localLoading ? (
                 <Text>Loading saved blogs...</Text>
               ) : savedBlogs.length === 0 ? (
                 <Text>You haven't saved any blogs yet.</Text>
