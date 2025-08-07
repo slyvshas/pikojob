@@ -24,6 +24,7 @@ import {
   InputRightElement,
   IconButton,
   Badge,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import { FaEnvelope, FaCheckCircle, FaEye, FaEyeSlash, FaLock, FaStar } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
@@ -38,6 +39,16 @@ const Login = () => {
   const { signIn, sendMagicLink } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
+
+  // Responsive values
+  const containerMaxW = useBreakpointValue({ base: 'full', sm: 'md' })
+  const padding = useBreakpointValue({ base: 4, sm: 8 })
+  const cardPadding = useBreakpointValue({ base: 6, sm: 8 })
+  const buttonSize = useBreakpointValue({ base: 'md', sm: 'lg' })
+  const inputSize = useBreakpointValue({ base: 'md', sm: 'lg' })
+  const headingSize = useBreakpointValue({ base: 'md', sm: 'lg' })
+  const iconSize = useBreakpointValue({ base: 8, sm: 10 })
+  const spacing = useBreakpointValue({ base: 6, sm: 8 })
 
   // Theme colors
   const bgColor = useColorModeValue('gray.50', 'gray.900')
@@ -95,11 +106,11 @@ const Login = () => {
 
   if (isEmailSent) {
     return (
-      <Box bg={bgColor} minH="100vh" py={8}>
-        <Container maxW="md">
+      <Box bg={bgColor} minH="100vh" py={padding}>
+        <Container maxW={containerMaxW} px={4}>
           <Box
             bg={cardBg}
-            p={8}
+            p={cardPadding}
             borderRadius="xl"
             boxShadow="lg"
             border="1px solid"
@@ -107,8 +118,8 @@ const Login = () => {
             textAlign="center"
           >
             <VStack spacing={6}>
-              <Icon as={FaCheckCircle} color="green.500" boxSize={12} />
-              <Heading size="lg" color={textColor}>
+              <Icon as={FaCheckCircle} color="green.500" boxSize={iconSize} />
+              <Heading size={headingSize} color={textColor}>
                 Check Your Email
               </Heading>
               <Alert status="success" borderRadius="lg">
@@ -128,7 +139,7 @@ const Login = () => {
                   onClick={() => setIsEmailSent(false)}
                   variant="outline"
                   w="full"
-                  size="lg"
+                  size={buttonSize}
                 >
                   Try Different Email
                 </Button>
@@ -136,7 +147,7 @@ const Login = () => {
                   onClick={() => navigate('/')}
                   colorScheme="blue"
                   w="full"
-                  size="lg"
+                  size={buttonSize}
                 >
                   Back to Home
                 </Button>
@@ -149,23 +160,23 @@ const Login = () => {
   }
 
   return (
-    <Box bg={bgColor} minH="100vh" py={8}>
-      <Container maxW="md">
+    <Box bg={bgColor} minH="100vh" py={padding}>
+      <Container maxW={containerMaxW} px={4}>
         <Box
           bg={cardBg}
-          p={8}
+          p={cardPadding}
           borderRadius="xl"
           boxShadow="lg"
           border="1px solid"
           borderColor={borderColor}
         >
-          <VStack spacing={8}>
+          <VStack spacing={spacing}>
             <VStack spacing={4} textAlign="center">
-              <Icon as={authMethod === 'magic' ? FaEnvelope : FaLock} color="blue.500" boxSize={10} />
-              <Heading size="lg" color={textColor}>
+              <Icon as={authMethod === 'magic' ? FaEnvelope : FaLock} color="blue.500" boxSize={iconSize} />
+              <Heading size={headingSize} color={textColor}>
                 Welcome Back
               </Heading>
-              <Text color={mutedColor}>
+              <Text color={mutedColor} fontSize="sm" px={2}>
                 {authMethod === 'magic' 
                   ? 'Enter your email to receive a secure login link'
                   : 'Sign in with your email and password'
@@ -178,7 +189,7 @@ const Login = () => {
               <Text fontSize="sm" color={mutedColor} fontWeight="medium">
                 Choose your sign-in method:
               </Text>
-              <HStack spacing={2} w="full" justify="center">
+              <HStack spacing={2} w="full" justify="center" flexWrap="wrap">
                 <Button
                   size="sm"
                   variant={authMethod === 'password' ? 'solid' : 'outline'}
@@ -186,13 +197,17 @@ const Login = () => {
                   onClick={() => setAuthMethod('password')}
                   leftIcon={<FaLock />}
                   rightIcon={authMethod === 'password' ? <FaStar /> : undefined}
+                  minH="40px"
+                  px={3}
                 >
-                  Password
-                  {authMethod === 'password' && (
-                    <Badge ml={2} colorScheme="green" fontSize="xs">
-                      Recommended
-                    </Badge>
-                  )}
+                  <VStack spacing={0} align="center">
+                    <Text fontSize="sm">Password</Text>
+                    {authMethod === 'password' && (
+                      <Badge colorScheme="green" fontSize="2xs" mt={1}>
+                        Recommended
+                      </Badge>
+                    )}
+                  </VStack>
                 </Button>
                 <Button
                   size="sm"
@@ -200,8 +215,10 @@ const Login = () => {
                   colorScheme="gray"
                   onClick={() => setAuthMethod('magic')}
                   leftIcon={<FaEnvelope />}
+                  minH="40px"
+                  px={3}
                 >
-                  Magic Link
+                  <Text fontSize="sm">Magic Link</Text>
                 </Button>
               </HStack>
             </VStack>
@@ -209,13 +226,13 @@ const Login = () => {
             <Box w="100%" as="form" onSubmit={authMethod === 'magic' ? handleMagicLinkSubmit : handlePasswordSubmit}>
               <VStack spacing={6}>
                 <FormControl isRequired>
-                  <FormLabel color={textColor}>Email Address</FormLabel>
+                  <FormLabel color={textColor} fontSize="sm">Email Address</FormLabel>
                   <Input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
-                    size="lg"
+                    size={inputSize}
                     borderRadius="lg"
                     borderColor={borderColor}
                     _focus={{
@@ -227,8 +244,8 @@ const Login = () => {
 
                 {authMethod === 'password' && (
                   <FormControl isRequired>
-                    <FormLabel color={textColor}>Password</FormLabel>
-                    <InputGroup size="lg">
+                    <FormLabel color={textColor} fontSize="sm">Password</FormLabel>
+                    <InputGroup size={inputSize}>
                       <Input
                         type={showPassword ? 'text' : 'password'}
                         value={password}
@@ -248,6 +265,7 @@ const Login = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowPassword(!showPassword)}
+                          minH="40px"
                         />
                       </InputRightElement>
                     </InputGroup>
@@ -258,10 +276,11 @@ const Login = () => {
                   type="submit"
                   colorScheme="blue"
                   width="100%"
-                  size="lg"
+                  size={buttonSize}
                   isLoading={isLoading}
                   loadingText={authMethod === 'magic' ? 'Sending Magic Link' : 'Signing In'}
                   borderRadius="lg"
+                  minH="48px"
                 >
                   {authMethod === 'magic' ? 'Send Magic Link' : 'Sign In'}
                 </Button>
@@ -270,22 +289,22 @@ const Login = () => {
 
             <VStack spacing={4} w="full">
               {authMethod === 'password' ? (
-                <Alert status="info" borderRadius="lg">
+                <Alert status="info" borderRadius="lg" fontSize="sm">
                   <AlertIcon />
                   <Box>
-                    <AlertTitle>Recommended Method</AlertTitle>
-                    <AlertDescription>
+                    <AlertTitle fontSize="sm">Recommended Method</AlertTitle>
+                    <AlertDescription fontSize="xs">
                       Password login is faster and more secure. Your session will be remembered.
                     </AlertDescription>
                   </Box>
                 </Alert>
               ) : (
-                <Text color={mutedColor} fontSize="sm" textAlign="center">
+                <Text color={mutedColor} fontSize="sm" textAlign="center" px={2}>
                   Magic link is sent to your email. Check your inbox and click the link to sign in.
                 </Text>
               )}
               
-              <Text fontSize="sm" color={mutedColor}>
+              <Text fontSize="sm" color={mutedColor} textAlign="center">
                 Don't have an account?{' '}
                 <Link as={RouterLink} to="/register" color="blue.500" fontWeight="medium">
                   Sign up

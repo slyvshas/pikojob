@@ -24,7 +24,7 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { theme } from './theme.js'
 import { supabase } from './lib/supabase.js'
 import { usePageTracking, useEngagementTracking } from './hooks/useAnalytics.js'
-import SessionStatus from './components/SessionStatus.jsx'
+
 
 // Protected Route component for admin access
 const ProtectedRoute = ({ children }) => {
@@ -130,7 +130,6 @@ function AppContent() {
           </Routes>
         </Container>
       </Box>
-      <SessionStatus />
     </Box>
   );
 }

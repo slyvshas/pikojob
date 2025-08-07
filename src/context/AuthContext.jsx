@@ -167,11 +167,29 @@ export function AuthProvider({ children }) {
 
   const refreshSession = async () => {
     try {
+      // Check if we have a valid session before attempting refresh
+      const currentSession = await sessionManager.getCurrentSession()
+      if (!currentSession || !currentSession.refresh_token) {
+        console.log('No valid session to refresh')
+        return null
+      }
+
       const data = await sessionManager.refreshSession()
       console.log('Session refreshed successfully')
       return data
     } catch (error) {
       console.error('Session refresh error:', error)
+      
+      // If refresh token is invalid, clear the session
+      if (error.message?.includes('Invalid Refresh Token') || 
+          error.message?.includes('Refresh Token Not Found')) {
+        console.log('Invalid refresh token, clearing session')
+        setUser(null)
+        setSession(null)
+        setIsAdmin(false)
+        sessionManager.clearSession()
+      }
+      
       throw error
     }
   }
@@ -181,19 +199,19 @@ export function AuthProvider({ children }) {
   }
 
   const isAuthenticated = () => {
-    return !!user && !!session
+    return !!user && !!session && !!session.access_token
   }
 
   // Check if session is about to expire
   const isSessionExpiringSoon = () => {
-    if (!session) return false
+    if (!session || !session.expires_at) return false
     
     const expiresAt = new Date(session.expires_at * 1000)
     const now = new Date()
     const timeUntilExpiry = expiresAt.getTime() - now.getTime()
     const fiveMinutes = 5 * 60 * 1000
     
-    return timeUntilExpiry < fiveMinutes
+    return timeUntilExpiry < fiveMinutes && timeUntilExpiry > 0
   }
 
   return (
