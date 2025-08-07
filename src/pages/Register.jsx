@@ -18,15 +18,25 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
+  HStack,
+  InputGroup,
+  InputRightElement,
+  IconButton,
+  Badge,
 } from '@chakra-ui/react'
-import { FaUserPlus, FaCheckCircle } from 'react-icons/fa'
+import { FaUserPlus, FaCheckCircle, FaEye, FaEyeSlash, FaLock, FaEnvelope, FaStar } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 
 const Register = () => {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isEmailSent, setIsEmailSent] = useState(false)
-  const { sendMagicLink } = useAuth()
+  const [authMethod, setAuthMethod] = useState('password') // Changed default to 'password'
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const { signUp, sendMagicLink } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
 
@@ -37,7 +47,7 @@ const Register = () => {
   const textColor = useColorModeValue('gray.800', 'white')
   const mutedColor = useColorModeValue('gray.600', 'gray.400')
 
-  const handleSubmit = async (e) => {
+  const handleMagicLinkSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
 
@@ -55,6 +65,56 @@ const Register = () => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to send magic link',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: 'Error',
+        description: 'Passwords do not match',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+      return
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: 'Error',
+        description: 'Password must be at least 6 characters long',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      await signUp(email, password)
+      toast({
+        title: 'Success',
+        description: 'Please check your email to confirm your account',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      })
+      navigate('/login')
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create account',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -132,16 +192,52 @@ const Register = () => {
         >
           <VStack spacing={8}>
             <VStack spacing={4} textAlign="center">
-              <Icon as={FaUserPlus} color="blue.500" boxSize={10} />
+              <Icon as={authMethod === 'magic' ? FaEnvelope : FaUserPlus} color="blue.500" boxSize={10} />
               <Heading size="lg" color={textColor}>
                 Create Account
               </Heading>
               <Text color={mutedColor}>
-                Enter your email to create a secure account
+                {authMethod === 'magic' 
+                  ? 'Enter your email to create a secure account'
+                  : 'Create your account with email and password'
+                }
               </Text>
             </VStack>
 
-            <Box w="100%" as="form" onSubmit={handleSubmit}>
+            {/* Authentication Method Toggle */}
+            <VStack spacing={3} w="full">
+              <Text fontSize="sm" color={mutedColor} fontWeight="medium">
+                Choose your registration method:
+              </Text>
+              <HStack spacing={2} w="full" justify="center">
+                <Button
+                  size="sm"
+                  variant={authMethod === 'password' ? 'solid' : 'outline'}
+                  colorScheme="blue"
+                  onClick={() => setAuthMethod('password')}
+                  leftIcon={<FaLock />}
+                  rightIcon={authMethod === 'password' ? <FaStar /> : undefined}
+                >
+                  Password
+                  {authMethod === 'password' && (
+                    <Badge ml={2} colorScheme="green" fontSize="xs">
+                      Recommended
+                    </Badge>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant={authMethod === 'magic' ? 'solid' : 'outline'}
+                  colorScheme="gray"
+                  onClick={() => setAuthMethod('magic')}
+                  leftIcon={<FaEnvelope />}
+                >
+                  Magic Link
+                </Button>
+              </HStack>
+            </VStack>
+
+            <Box w="100%" as="form" onSubmit={authMethod === 'magic' ? handleMagicLinkSubmit : handlePasswordSubmit}>
               <VStack spacing={6}>
                 <FormControl isRequired>
                   <FormLabel color={textColor}>Email Address</FormLabel>
@@ -160,24 +256,94 @@ const Register = () => {
                   />
                 </FormControl>
 
+                {authMethod === 'password' && (
+                  <>
+                    <FormControl isRequired>
+                      <FormLabel color={textColor}>Password</FormLabel>
+                      <InputGroup size="lg">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Create a password (min 6 characters)"
+                          borderRadius="lg"
+                          borderColor={borderColor}
+                          _focus={{
+                            borderColor: 'blue.500',
+                            boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)',
+                          }}
+                        />
+                        <InputRightElement>
+                          <IconButton
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            icon={showPassword ? <FaEyeSlash /> : <FaEye />}
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowPassword(!showPassword)}
+                          />
+                        </InputRightElement>
+                      </InputGroup>
+                    </FormControl>
+
+                    <FormControl isRequired>
+                      <FormLabel color={textColor}>Confirm Password</FormLabel>
+                      <InputGroup size="lg">
+                        <Input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm your password"
+                          borderRadius="lg"
+                          borderColor={borderColor}
+                          _focus={{
+                            borderColor: 'blue.500',
+                            boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)',
+                          }}
+                        />
+                        <InputRightElement>
+                          <IconButton
+                            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                            icon={showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          />
+                        </InputRightElement>
+                      </InputGroup>
+                    </FormControl>
+                  </>
+                )}
+
                 <Button
                   type="submit"
                   colorScheme="blue"
                   width="100%"
                   size="lg"
                   isLoading={isLoading}
-                  loadingText="Sending Magic Link"
+                  loadingText={authMethod === 'magic' ? 'Sending Magic Link' : 'Creating Account'}
                   borderRadius="lg"
                 >
-                  Create Account
+                  {authMethod === 'magic' ? 'Create Account' : 'Sign Up'}
                 </Button>
               </VStack>
             </Box>
 
             <VStack spacing={4} w="full">
-              <Text color={mutedColor} fontSize="sm" textAlign="center">
-                No password required! We'll send you a secure link to create your account.
-              </Text>
+              {authMethod === 'password' ? (
+                <Alert status="info" borderRadius="lg">
+                  <AlertIcon />
+                  <Box>
+                    <AlertTitle>Recommended Method</AlertTitle>
+                    <AlertDescription>
+                      Password registration is faster and more secure. Your session will be remembered.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
+              ) : (
+                <Text color={mutedColor} fontSize="sm" textAlign="center">
+                  Magic link is sent to your email. Check your inbox and click the link to create your account.
+                </Text>
+              )}
               
               <Text fontSize="sm" color={mutedColor}>
                 Already have an account?{' '}

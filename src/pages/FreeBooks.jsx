@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
   Box,
@@ -14,8 +15,20 @@ import {
   IconButton,
   useToast,
   Image,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
+  Checkbox,
+  CheckboxGroup,
+  VStack,
+  Divider,
+  useColorModeValue,
+  Collapse,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { FaExternalLinkAlt, FaBookmark, FaRegBookmark, FaBook, FaUser, FaBuilding } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaBookmark, FaRegBookmark, FaBook, FaUser, FaBuilding, FaFilter, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
 
@@ -28,6 +41,18 @@ const FreeBooks = () => {
   const [blogSlideUpOpen, setBlogSlideUpOpen] = useState(false);
   const [activeBlogSlug, setActiveBlogSlug] = useState(null);
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { isOpen: isFilterOpen, onToggle: onFilterToggle } = useDisclosure({ defaultIsOpen: false });
+
+  // Theme colors
+  const bgColor = useColorModeValue('gray.50', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const mutedColor = useColorModeValue('gray.600', 'gray.400');
+
+  // Get filter values from URL
+  const selectedCategories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -61,6 +86,41 @@ const FreeBooks = () => {
     } catch (error) {
       console.error('Error fetching saved books:', error);
     }
+  };
+
+  // Extract unique categories from books
+  const categories = useMemo(() => {
+    const uniqueCategories = [...new Set(books.map(book => book.category).filter(Boolean))].sort();
+    return uniqueCategories;
+  }, [books]);
+
+  // Filter books based on selected categories
+  const filteredBooks = useMemo(() => {
+    return books.filter(book => {
+      const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(book.category);
+      return categoryMatch;
+    });
+  }, [books, selectedCategories]);
+
+  // Update URL with filter parameters
+  const updateFilters = (filterType, values) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    
+    if (values.length > 0) {
+      newSearchParams.set(filterType, values.join(','));
+    } else {
+      newSearchParams.delete(filterType);
+    }
+    
+    setSearchParams(newSearchParams);
+  };
+
+  const handleCategoryChange = (values) => {
+    updateFilters('categories', values);
+  };
+
+  const clearAllFilters = () => {
+    setSearchParams({});
   };
 
   const handleSaveBook = async (bookId) => {
@@ -166,36 +226,127 @@ const FreeBooks = () => {
     return colors[format] || 'gray';
   };
 
+  const hasActiveFilters = selectedCategories.length > 0;
+
   return (
     <Box maxW="1200px" mx="auto" py={10} px={4}>
       <Heading mb={8} textAlign="center" color="blue.600">Free Books</Heading>
       
+      {/* Filter Toggle Button */}
+      {categories.length > 0 && (
+        <Box mb={4}>
+          <Button
+            onClick={onFilterToggle}
+            variant="outline"
+            colorScheme="blue"
+            size="sm"
+            leftIcon={<FaFilter />}
+            rightIcon={isFilterOpen ? <FaChevronUp /> : <FaChevronDown />}
+            w="full"
+            justifyContent="space-between"
+            bg={cardBg}
+            borderColor={borderColor}
+            _hover={{
+              bg: useColorModeValue('blue.50', 'blue.900'),
+              borderColor: 'blue.300',
+            }}
+          >
+            <HStack spacing={2}>
+              <Text fontWeight="medium" color={textColor}>
+                {isFilterOpen ? 'Hide' : 'Show'} Categories Filter
+              </Text>
+              {hasActiveFilters && (
+                <Badge colorScheme="blue" variant="solid" size="sm">
+                  {selectedCategories.length} selected
+                </Badge>
+              )}
+            </HStack>
+          </Button>
+        </Box>
+      )}
+
+      {/* Filter Section */}
+      {categories.length > 0 && (
+        <Collapse in={isFilterOpen} animateOpacity>
+          <Box mb={6} bg={cardBg} p={4} borderRadius="lg" border="1px solid" borderColor={borderColor}>
+            <HStack justify="space-between" mb={4}>
+              <HStack>
+                <Icon as={FaFilter} color="blue.500" />
+                <Text fontWeight="medium" color={textColor}>Categories</Text>
+              </HStack>
+              {hasActiveFilters && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  colorScheme="red"
+                  leftIcon={<FaTimes />}
+                  onClick={clearAllFilters}
+                >
+                  Clear All
+                </Button>
+              )}
+            </HStack>
+
+            <CheckboxGroup value={selectedCategories} onChange={handleCategoryChange}>
+              <VStack align="start" spacing={2}>
+                {categories.map((category) => (
+                  <Checkbox key={category} value={category} colorScheme="blue">
+                    <Text fontSize="sm" color={textColor}>
+                      {formatCategory(category)}
+                    </Text>
+                  </Checkbox>
+                ))}
+              </VStack>
+            </CheckboxGroup>
+          </Box>
+        </Collapse>
+      )}
+
       {/* Results Summary */}
       <HStack justify="space-between" align="center" mb={6} flexWrap="wrap" gap={2}>
-        <Text color="gray.600" mb={2}>
-          Showing {books.length} books
+        <Text color={mutedColor} mb={2}>
+          Showing {filteredBooks.length} of {books.length} books
+          {hasActiveFilters && (
+            <Text as="span" color="blue.500" fontWeight="medium">
+              {' '}(filtered)
+            </Text>
+          )}
         </Text>
+        {hasActiveFilters && (
+          <HStack spacing={2} flexWrap="wrap">
+            {selectedCategories.map(category => (
+              <Badge key={category} colorScheme="blue" variant="subtle" size="sm">
+                {formatCategory(category)}
+              </Badge>
+            ))}
+          </HStack>
+        )}
       </HStack>
 
       {loading ? (
         <Text>Loading...</Text>
       ) : error ? (
         <Text color="red.500">{error}</Text>
-      ) : books.length === 0 ? (
+      ) : filteredBooks.length === 0 ? (
         <Box textAlign="center" py={10}>
-          <Text fontSize="lg" color="gray.500" mb={4}>
-            No books available
+          <Text fontSize="lg" color={mutedColor} mb={4}>
+            {hasActiveFilters ? 'No books match your current filters' : 'No books available'}
           </Text>
+          {hasActiveFilters && (
+            <Button colorScheme="blue" onClick={clearAllFilters}>
+              Clear Filters
+            </Button>
+          )}
         </Box>
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-          {books.map((book) => {
+          {filteredBooks.map((book) => {
             const isNew = (Date.now() - new Date(book.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
             
             return (
               <Card
                 key={book.id}
-                bg="white"
+                bg={cardBg}
                 borderRadius="lg"
                 boxShadow="sm"
                 transition="all 0.3s ease"
@@ -203,10 +354,10 @@ const FreeBooks = () => {
                   transform: 'translateY(-4px) scale(1.02)', 
                   boxShadow: 'xl', 
                   borderColor: 'blue.400',
-                  bg: 'blue.50'
+                  bg: useColorModeValue('blue.50', 'blue.900')
                 }}
                 border="1px solid"
-                borderColor="gray.200"
+                borderColor={borderColor}
                 overflow="hidden"
                 position="relative"
                 maxW="400px"
@@ -253,9 +404,9 @@ const FreeBooks = () => {
                     colorScheme={savedBooks.has(book.id) ? 'blue' : 'gray'}
                     variant="ghost"
                     size="xs"
-                    bg="white"
+                    bg={cardBg}
                     _hover={{ 
-                      bg: 'blue.50',
+                      bg: useColorModeValue('blue.50', 'blue.900'),
                       transform: 'scale(1.1)',
                       color: 'blue.500'
                     }}
@@ -269,7 +420,7 @@ const FreeBooks = () => {
                   w="120px" 
                   h="200px" 
                   position="relative"
-                  bg="gray.50"
+                  bg={useColorModeValue('gray.50', 'gray.700')}
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
@@ -288,43 +439,19 @@ const FreeBooks = () => {
                     <Box
                       w="100px"
                       h="140px"
-                      bg="gray.200"
+                      bg={useColorModeValue('gray.200', 'gray.600')}
                       borderRadius="md"
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
                     >
-                      <Icon as={FaBook} color="gray.400" fontSize="2xl" />
+                      <Icon as={FaBook} color={mutedColor} fontSize="2xl" />
                     </Box>
                   )}
                 </Box>
 
                 {/* Book Content - Right Side */}
                 <Box p={4} flex="1" display="flex" flexDirection="column" position="relative">
-                  {/* Top Right Badges */}
-                  <Box
-                    position="absolute"
-                    top={2}
-                    right={2}
-                    zIndex={2}
-                    display="flex"
-                    gap={1}
-                  >
-                    {isNew && (
-                      <Badge 
-                        colorScheme="green" 
-                        variant="solid"
-                        borderRadius="full"
-                        px={1.5}
-                        py={0.5}
-                        fontSize="2xs"
-                        fontWeight="medium"
-                      >
-                        New
-                      </Badge>
-                    )}
-                  </Box>
-
                   {/* Category Badge */}
                   {book.category && (
                     <Badge 
@@ -345,7 +472,7 @@ const FreeBooks = () => {
                   <Heading 
                     size="sm" 
                     mb={1}
-                    color="gray.800"
+                    color={textColor}
                     lineHeight="1.2"
                     noOfLines={2}
                     fontSize="md"
@@ -357,7 +484,7 @@ const FreeBooks = () => {
                   {/* Author */}
                   {book.author && (
                     <HStack spacing={1} mb={1}>
-                      <Icon as={FaUser} color="gray.400" fontSize="2xs" />
+                      <Icon as={FaUser} color={mutedColor} fontSize="2xs" />
                       <Text fontSize="xs" color="blue.600" fontWeight="medium" noOfLines={1}>
                         {book.author}
                       </Text>
@@ -367,15 +494,15 @@ const FreeBooks = () => {
                   {/* Publisher */}
                   {book.publisher && (
                     <HStack spacing={1} mb={2}>
-                      <Icon as={FaBuilding} color="gray.400" fontSize="2xs" />
-                      <Text fontSize="2xs" color="gray.500" noOfLines={1}>
+                      <Icon as={FaBuilding} color={mutedColor} fontSize="2xs" />
+                      <Text fontSize="2xs" color={mutedColor} noOfLines={1}>
                         {book.publisher}
                       </Text>
                     </HStack>
                   )}
 
                   {/* Book Details */}
-                  <HStack spacing={2} mb={2} fontSize="2xs" color="gray.500" flexWrap="wrap">
+                  <HStack spacing={2} mb={2} fontSize="2xs" color={mutedColor} flexWrap="wrap">
                     {book.pages && (
                       <Text>{book.pages} pages</Text>
                     )}
@@ -391,7 +518,7 @@ const FreeBooks = () => {
 
                   {/* Description */}
                   <Text 
-                    color="gray.600" 
+                    color={mutedColor} 
                     fontSize="xs" 
                     lineHeight="1.4"
                     mb={3}
@@ -445,7 +572,7 @@ const FreeBooks = () => {
                         width="100%"
                         rightIcon={<FaExternalLinkAlt />}
                         _hover={{ 
-                          bg: 'gray.50',
+                          bg: useColorModeValue('gray.50', 'gray.700'),
                           borderColor: 'gray.300',
                           transform: 'translateY(-1px)',
                           boxShadow: 'sm'

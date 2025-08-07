@@ -36,6 +36,9 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        // Wait a bit for the session to be properly set
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
         const { data, error } = await supabase.auth.getSession()
         
         if (error) {
@@ -46,7 +49,7 @@ const AuthCallback = () => {
           setStatus('success')
           toast({
             title: 'Successfully signed in!',
-            description: 'Welcome back!',
+            description: 'Welcome back! Your session has been saved.',
             status: 'success',
             duration: 3000,
             isClosable: true,

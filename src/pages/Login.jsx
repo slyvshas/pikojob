@@ -18,15 +18,24 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
+  HStack,
+  Divider,
+  InputGroup,
+  InputRightElement,
+  IconButton,
+  Badge,
 } from '@chakra-ui/react'
-import { FaEnvelope, FaCheckCircle } from 'react-icons/fa'
+import { FaEnvelope, FaCheckCircle, FaEye, FaEyeSlash, FaLock, FaStar } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isEmailSent, setIsEmailSent] = useState(false)
-  const { sendMagicLink } = useAuth()
+  const [authMethod, setAuthMethod] = useState('password') // Changed default to 'password'
+  const [showPassword, setShowPassword] = useState(false)
+  const { signIn, sendMagicLink } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
 
@@ -37,7 +46,7 @@ const Login = () => {
   const textColor = useColorModeValue('gray.800', 'white')
   const mutedColor = useColorModeValue('gray.600', 'gray.400')
 
-  const handleSubmit = async (e) => {
+  const handleMagicLinkSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
 
@@ -55,6 +64,26 @@ const Login = () => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to send magic link',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      await signIn(email, password)
+      navigate('/jobs')
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Invalid email or password',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -132,16 +161,52 @@ const Login = () => {
         >
           <VStack spacing={8}>
             <VStack spacing={4} textAlign="center">
-              <Icon as={FaEnvelope} color="blue.500" boxSize={10} />
+              <Icon as={authMethod === 'magic' ? FaEnvelope : FaLock} color="blue.500" boxSize={10} />
               <Heading size="lg" color={textColor}>
                 Welcome Back
               </Heading>
               <Text color={mutedColor}>
-                Enter your email to receive a secure login link
+                {authMethod === 'magic' 
+                  ? 'Enter your email to receive a secure login link'
+                  : 'Sign in with your email and password'
+                }
               </Text>
             </VStack>
 
-            <Box w="100%" as="form" onSubmit={handleSubmit}>
+            {/* Authentication Method Toggle */}
+            <VStack spacing={3} w="full">
+              <Text fontSize="sm" color={mutedColor} fontWeight="medium">
+                Choose your sign-in method:
+              </Text>
+              <HStack spacing={2} w="full" justify="center">
+                <Button
+                  size="sm"
+                  variant={authMethod === 'password' ? 'solid' : 'outline'}
+                  colorScheme="blue"
+                  onClick={() => setAuthMethod('password')}
+                  leftIcon={<FaLock />}
+                  rightIcon={authMethod === 'password' ? <FaStar /> : undefined}
+                >
+                  Password
+                  {authMethod === 'password' && (
+                    <Badge ml={2} colorScheme="green" fontSize="xs">
+                      Recommended
+                    </Badge>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant={authMethod === 'magic' ? 'solid' : 'outline'}
+                  colorScheme="gray"
+                  onClick={() => setAuthMethod('magic')}
+                  leftIcon={<FaEnvelope />}
+                >
+                  Magic Link
+                </Button>
+              </HStack>
+            </VStack>
+
+            <Box w="100%" as="form" onSubmit={authMethod === 'magic' ? handleMagicLinkSubmit : handlePasswordSubmit}>
               <VStack spacing={6}>
                 <FormControl isRequired>
                   <FormLabel color={textColor}>Email Address</FormLabel>
@@ -160,24 +225,65 @@ const Login = () => {
                   />
                 </FormControl>
 
+                {authMethod === 'password' && (
+                  <FormControl isRequired>
+                    <FormLabel color={textColor}>Password</FormLabel>
+                    <InputGroup size="lg">
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        borderRadius="lg"
+                        borderColor={borderColor}
+                        _focus={{
+                          borderColor: 'blue.500',
+                          boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)',
+                        }}
+                      />
+                      <InputRightElement>
+                        <IconButton
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          icon={showPassword ? <FaEyeSlash /> : <FaEye />}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowPassword(!showPassword)}
+                        />
+                      </InputRightElement>
+                    </InputGroup>
+                  </FormControl>
+                )}
+
                 <Button
                   type="submit"
                   colorScheme="blue"
                   width="100%"
                   size="lg"
                   isLoading={isLoading}
-                  loadingText="Sending Magic Link"
+                  loadingText={authMethod === 'magic' ? 'Sending Magic Link' : 'Signing In'}
                   borderRadius="lg"
                 >
-                  Send Magic Link
+                  {authMethod === 'magic' ? 'Send Magic Link' : 'Sign In'}
                 </Button>
               </VStack>
             </Box>
 
             <VStack spacing={4} w="full">
-              <Text color={mutedColor} fontSize="sm" textAlign="center">
-                No password required! We'll send you a secure link to sign in.
-              </Text>
+              {authMethod === 'password' ? (
+                <Alert status="info" borderRadius="lg">
+                  <AlertIcon />
+                  <Box>
+                    <AlertTitle>Recommended Method</AlertTitle>
+                    <AlertDescription>
+                      Password login is faster and more secure. Your session will be remembered.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
+              ) : (
+                <Text color={mutedColor} fontSize="sm" textAlign="center">
+                  Magic link is sent to your email. Check your inbox and click the link to sign in.
+                </Text>
+              )}
               
               <Text fontSize="sm" color={mutedColor}>
                 Don't have an account?{' '}
