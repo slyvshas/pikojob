@@ -6,10 +6,7 @@ import {
   FaFileAlt, 
   FaRegFileAlt, 
   FaClipboardList,
-  FaMoneyBillWave,
   FaArrowLeft,
-  FaBookmark,
-  FaRegBookmark,
   FaShare,
   FaBuilding,
   FaCalendarAlt,
@@ -48,7 +45,8 @@ import {
   Tag,
   TagLabel,
   Wrap,
-  WrapItem
+  WrapItem,
+  Stack
 } from '@chakra-ui/react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -61,7 +59,6 @@ const JobDetails = () => {
   const [job, setJob] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [isSaved, setIsSaved] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
   const navigate = useNavigate()
   const toast = useToast()
@@ -78,7 +75,10 @@ const JobDetails = () => {
   const mutedColor = useColorModeValue('gray.600', 'gray.400')
   
   // Responsive values
-  const containerMaxW = useBreakpointValue({ base: 'container.sm', md: 'container.lg', lg: 'container.xl' })
+  const containerMaxW = useBreakpointValue({ base: '100%', md: 'container.lg', lg: 'container.xl' })
+  
+  // Additional color mode values
+  const metaInfoBg = useColorModeValue('gray.50', 'gray.700')
 
   // All hooks at the top level
   useEffect(() => {
@@ -192,73 +192,7 @@ const JobDetails = () => {
     }
   }
 
-  const handleSave = async () => {
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to save jobs',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      })
-      navigate('/login')
-      return
-    }
-    
-    try {
-      // Toggle saved state optimistically
-      const newSavedState = !isSaved
-      setIsSaved(newSavedState)
-      
-      if (newSavedState) {
-        // Save job to database
-        const { error } = await supabase
-          .from('saved_jobs')
-          .insert([{
-            user_id: user.id,
-            job_id: job.id,
-            created_at: new Date().toISOString()
-          }])
-        
-        if (error) throw error
-        
-        toast({
-          title: 'Job Saved',
-          description: 'Job added to your saved items',
-          status: 'success',
-          duration: 2000,
-          isClosable: true,
-        })
-      } else {
-        // Remove job from database
-        const { error } = await supabase
-          .from('saved_jobs')
-          .delete()
-          .match({ user_id: user.id, job_id: job.id })
-        
-        if (error) throw error
-        
-        toast({
-          title: 'Job Unsaved',
-          description: 'Job removed from your saved items',
-          status: 'success',
-          duration: 2000,
-          isClosable: true,
-        })
-      }
-    } catch (error) {
-      console.error('Error saving job:', error)
-      // Revert the optimistic update
-      setIsSaved(!isSaved)
-      toast({
-        title: 'Save Error',
-        description: 'Could not save job. Please try again.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-    }
-  }
+
 
   const handleShare = async () => {
     try {
@@ -294,12 +228,7 @@ const JobDetails = () => {
     }
   }
 
-  const formatSalary = (salary) => {
-    if (!salary || salary === 'null' || salary === '') {
-      return 'Salary not specified'
-    }
-    return salary
-  }
+
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Date not available'
@@ -318,7 +247,7 @@ const JobDetails = () => {
   if (loading) {
     return (
       <Box minH="100vh" bgGradient={bgGradient}>
-        <Container maxW={containerMaxW} py={8}>
+        <Container maxW={containerMaxW} py={8} px={4}>
           <Center minH="60vh">
             <VStack spacing={4}>
               <Spinner size="xl" thickness="4px" speed="0.65s" color="blue.500" />
@@ -333,7 +262,7 @@ const JobDetails = () => {
   if (error || !job) {
     return (
       <Box minH="100vh" bgGradient={bgGradient}>
-        <Container maxW={containerMaxW} py={8}>
+        <Container maxW={containerMaxW} py={8} px={4}>
           <VStack spacing={6} align="center" minH="60vh" justify="center">
             <Alert status="error" borderRadius="xl" maxW="md">
               <AlertIcon />
@@ -355,19 +284,19 @@ const JobDetails = () => {
 
   return (
     <Box minH="100vh" bgGradient={bgGradient}>
-      <Container maxW={containerMaxW} py={8}>
+      <Container maxW={containerMaxW} py={4} px={4}>
         {/* Header with Back Button */}
-        <Flex mb={6} align="center" justify="space-between">
+        <Flex mb={6} align="center" justify="space-between" flexWrap="wrap" gap={2}>
           <Button
             leftIcon={<FaArrowLeft />}
             variant="ghost"
             onClick={() => navigate('/jobs')}
             color={mutedColor}
             _hover={{ color: textColor, bg: cardBg }}
+            size="md"
           >
             Back to Jobs
           </Button>
-          <HStack spacing={2}>
             <IconButton
               icon={<FaShare />}
               onClick={handleShare}
@@ -375,83 +304,67 @@ const JobDetails = () => {
               colorScheme="blue"
               aria-label="Share job"
               _hover={{ bg: 'blue.50' }}
-            />
-            <IconButton
-              icon={isSaved ? <FaBookmark /> : <FaRegBookmark />}
-              onClick={handleSave}
-              variant="ghost"
-              colorScheme={isSaved ? 'red' : 'gray'}
-              aria-label={isSaved ? 'Unsave job' : 'Save job'}
-              _hover={{ bg: isSaved ? 'red.50' : 'gray.50' }}
-            />
-          </HStack>
+              size="md"
+          />
         </Flex>
 
-        <Grid templateColumns={{ base: '1fr', lg: '2fr 1fr' }} gap={8}>
-          {/* Main Content */}
-          <GridItem>
-            <VStack spacing={6} align="stretch">
+        <Stack spacing={6}>
               {/* Job Header Card */}
-              <Card bg={cardBg} shadow={cardShadow} borderRadius="2xl" overflow="hidden">
-                <CardBody p={8}>
+          <Card bg={cardBg} shadow={cardShadow} borderRadius="xl" overflow="hidden">
+            <CardBody p={{ base: 4, md: 6, lg: 8 }}>
                   <VStack spacing={6} align="stretch">
                     {/* Company and Job Title */}
-                    <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'start', md: 'center' }}>
-                      <Box flex="1">
-                        <HStack mb={3} spacing={3}>
+                <Stack spacing={4}>
+                  {/* Company Info */}
+                  <HStack spacing={3} align="flex-start">
                           <Avatar
                             name={job.company_name || 'Company'}
                             src={job.company_logo_url}
-                            size="md"
+                            size="lg"
                             bg="blue.500"
                             color="white"
+                            flexShrink={0}
                           />
-                          <VStack align="start" spacing={1}>
-                            <Text fontSize="lg" fontWeight="semibold" color={mutedColor}>
+                    <VStack align="start" spacing={1} flex="1">
+                      <Text fontSize={{ base: 'md', md: 'lg' }} fontWeight="semibold" color={mutedColor}>
                               {job.company_name || 'Company Name Not Available'}
                             </Text>
                             {job.company_description_short && (
-                              <Text fontSize="sm" color={mutedColor} maxW="200px" noOfLines={2}>
+                        <Text fontSize="sm" color={mutedColor} noOfLines={2}>
                                 {job.company_description_short}
                               </Text>
                             )}
                           </VStack>
                         </HStack>
-                        <Heading size="xl" color={textColor} mb={4} lineHeight="shorter">
+
+                  {/* Job Title */}
+                  <Heading size={{ base: 'lg', md: 'xl' }} color={textColor} lineHeight="shorter">
                           {job.title || 'Job Title Not Available'}
                         </Heading>
-                      </Box>
-                      <VStack align={{ base: 'start', md: 'end' }} spacing={2}>
-                        <HStack spacing={2} fontSize="2xl" fontWeight="bold" color="green.500">
-                          <FaMoneyBillWave />
-                          <Text>{formatSalary(job.salary)}</Text>
-                        </HStack>
-                        <Badge colorScheme="green" fontSize="sm" px={3} py={1} borderRadius="full">
-                          {job.salary && job.salary !== 'null' && job.salary !== '' ? 'Competitive Salary' : 'Salary TBD'}
-                        </Badge>
-                      </VStack>
-                    </Flex>
+
+                  
+                </Stack>
 
                     {/* Job Meta Information */}
                     <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4}>
-                      <HStack spacing={3} p={4} bg={useColorModeValue('gray.50', 'gray.700')} borderRadius="xl">
-                        <Box p={2} bg="blue.100" borderRadius="lg">
+                  <HStack spacing={3} p={4} bg={metaInfoBg} borderRadius="xl">
+                    <Box p={2} bg="blue.100" borderRadius="lg" flexShrink={0}>
                           <FaMapMarkerAlt color="blue" />
                         </Box>
-                        <VStack align="start" spacing={0}>
+                    <VStack align="start" spacing={0} flex="1">
                           <Text fontSize="sm" color={mutedColor}>Location</Text>
-                          <Text fontWeight="medium" color={textColor}>
+                      <Text fontWeight="medium" color={textColor} fontSize="sm">
                             {job.location || 'Location not specified'}
                           </Text>
                         </VStack>
                       </HStack>
-                      <HStack spacing={3} p={4} bg={useColorModeValue('gray.50', 'gray.700')} borderRadius="xl">
-                        <Box p={2} bg="purple.100" borderRadius="lg">
+                  <HStack spacing={3} p={4} bg={metaInfoBg} borderRadius="xl">
+                    <Box p={2} bg="purple.100" borderRadius="lg" flexShrink={0}>
                           <FaClock color="purple" />
                         </Box>
-                        <VStack align="start" spacing={0}>
+                    <VStack align="start" spacing={0} flex="1">
                           <Text fontSize="sm" color={mutedColor}>Type</Text>
-                          <Text fontWeight="medium" color={textColor}>
+                      <Text fontWeight="medium" color={textColor} fontSize="sm">
                             {job.employment_type || 'Type not specified'}
                           </Text>
                         </VStack>
@@ -459,11 +372,9 @@ const JobDetails = () => {
                     </Grid>
 
                     {/* Action Buttons */}
-                    <HStack spacing={4} pt={4}>
                       <Button
                         colorScheme="blue"
-                        size="lg"
-                        flex="1"
+                        size="md"
                         leftIcon={<FaExternalLinkAlt />}
                         onClick={handleApply}
                         isLoading={isApplying}
@@ -471,36 +382,32 @@ const JobDetails = () => {
                         _hover={{ transform: 'translateY(-2px)', shadow: 'lg' }}
                         transition="all 0.2s"
                         disabled={!job.external_apply_link}
+                        w="full"
                       >
                         {!user ? 'Sign in to Apply' : 'Apply Now'}
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        leftIcon={isSaved ? <FaBookmark /> : <FaRegBookmark />}
-                        onClick={handleSave}
-                        colorScheme={isSaved ? 'red' : 'gray'}
-                      >
-                        {isSaved ? 'Saved' : 'Save'}
-                      </Button>
-                    </HStack>
                   </VStack>
                 </CardBody>
               </Card>
 
+          {/* Content Grid */}
+          <Grid templateColumns={{ base: '1fr', lg: '2fr 1fr' }} gap={6}>
+            {/* Main Content */}
+            <GridItem>
+              <VStack spacing={6} align="stretch">
               {/* Job Description */}
               {job.description && (
-                <Card bg={cardBg} shadow={cardShadow} borderRadius="2xl">
+                  <Card bg={cardBg} shadow={cardShadow} borderRadius="xl">
                   <CardHeader pb={2}>
                     <HStack spacing={3}>
                       <Box p={2} bg="blue.100" borderRadius="lg">
                         <FaFileAlt color="blue" />
                       </Box>
-                      <Heading size="lg" color={textColor}>Job Description</Heading>
+                        <Heading size={{ base: 'md', md: 'lg' }} color={textColor}>Job Description</Heading>
                     </HStack>
                   </CardHeader>
                   <CardBody pt={2}>
-                    <Text color={mutedColor} lineHeight="tall" whiteSpace="pre-wrap">
+                      <Text color={mutedColor} lineHeight="tall" whiteSpace="pre-wrap" fontSize="sm">
                       {job.description}
                     </Text>
                   </CardBody>
@@ -509,17 +416,17 @@ const JobDetails = () => {
 
               {/* Full Description */}
               {job.full_description && (
-                <Card bg={cardBg} shadow={cardShadow} borderRadius="2xl">
+                  <Card bg={cardBg} shadow={cardShadow} borderRadius="xl">
                   <CardHeader pb={2}>
                     <HStack spacing={3}>
                       <Box p={2} bg="purple.100" borderRadius="lg">
                         <FaRegFileAlt color="purple" />
                       </Box>
-                      <Heading size="lg" color={textColor}>Full Description</Heading>
+                        <Heading size={{ base: 'md', md: 'lg' }} color={textColor}>Full Description</Heading>
                     </HStack>
                   </CardHeader>
                   <CardBody pt={2}>
-                    <Text color={mutedColor} lineHeight="tall" whiteSpace="pre-wrap">
+                      <Text color={mutedColor} lineHeight="tall" whiteSpace="pre-wrap" fontSize="sm">
                       {job.full_description}
                     </Text>
                   </CardBody>
@@ -528,17 +435,17 @@ const JobDetails = () => {
 
               {/* Requirements */}
               {job.requirements && (
-                <Card bg={cardBg} shadow={cardShadow} borderRadius="2xl">
+                  <Card bg={cardBg} shadow={cardShadow} borderRadius="xl">
                   <CardHeader pb={2}>
                     <HStack spacing={3}>
                       <Box p={2} bg="green.100" borderRadius="lg">
                         <FaClipboardList color="green" />
                       </Box>
-                      <Heading size="lg" color={textColor}>Requirements</Heading>
+                        <Heading size={{ base: 'md', md: 'lg' }} color={textColor}>Requirements</Heading>
                     </HStack>
                   </CardHeader>
                   <CardBody pt={2}>
-                    <Text color={mutedColor} lineHeight="tall" whiteSpace="pre-wrap">
+                      <Text color={mutedColor} lineHeight="tall" whiteSpace="pre-wrap" fontSize="sm">
                       {job.requirements}
                     </Text>
                   </CardBody>
@@ -551,46 +458,136 @@ const JobDetails = () => {
           <GridItem>
             <VStack spacing={6} align="stretch">
               {/* Basic Job Info Card */}
-              <Card bg={cardBg} shadow={cardShadow} borderRadius="2xl">
+                <Card bg={cardBg} shadow={cardShadow} borderRadius="xl">
                 <CardHeader>
-                  <Heading size="md" color={textColor}>Job Information</Heading>
+                    <Heading size={{ base: 'sm', md: 'md' }} color={textColor}>Job Information</Heading>
                 </CardHeader>
                 <CardBody pt={2}>
                   <VStack spacing={4} align="stretch">
                     {job.created_at && (
                       <HStack justify="space-between">
-                        <Text color={mutedColor}>Posted</Text>
-                        <Text fontWeight="medium" color={textColor}>
+                           <Text color={mutedColor} fontSize="sm">Posted</Text>
+                           <Text fontWeight="medium" color={textColor} fontSize="sm">
                           {formatDate(job.created_at)}
                         </Text>
                       </HStack>
                     )}
                     {job.employment_type && (
                       <HStack justify="space-between">
-                        <Text color={mutedColor}>Employment Type</Text>
-                        <Badge colorScheme="blue">{job.employment_type}</Badge>
+                           <Text color={mutedColor} fontSize="sm">Employment Type</Text>
+                           <Badge colorScheme="blue" fontSize="xs">{job.employment_type}</Badge>
                       </HStack>
                     )}
                     {job.location && (
                       <HStack justify="space-between">
-                        <Text color={mutedColor}>Location</Text>
-                        <Text fontWeight="medium" color={textColor} textAlign="right">
+                           <Text color={mutedColor} fontSize="sm">Location</Text>
+                           <Text fontWeight="medium" color={textColor} textAlign="right" fontSize="sm" maxW="150px">
                           {job.location}
                         </Text>
                       </HStack>
                     )}
                     {job.external_apply_link && (
                       <HStack justify="space-between">
-                        <Text color={mutedColor}>Application</Text>
-                        <Badge colorScheme="green">Available</Badge>
+                           <Text color={mutedColor} fontSize="sm">Application</Text>
+                           <Badge colorScheme="green" fontSize="xs">Available</Badge>
+                         </HStack>
+                       )}
+                     </VStack>
+                   </CardBody>
+                 </Card>
+
+                                   {/* Quick Info Card */}
+                  {job.quick_info && Object.keys(job.quick_info).length > 0 && (
+                    <Card bg={cardBg} shadow={cardShadow} borderRadius="xl">
+                      <CardHeader>
+                        <Heading size={{ base: 'sm', md: 'md' }} color={textColor}>Quick Info</Heading>
+                      </CardHeader>
+                      <CardBody pt={2}>
+                        <VStack spacing={4} align="stretch">
+                          {job.quick_info.experience_level && (
+                            <HStack justify="space-between">
+                              <Text color={mutedColor} fontSize="sm">Experience</Text>
+                              <Badge colorScheme="purple" fontSize="xs">{job.quick_info.experience_level}</Badge>
+                            </HStack>
+                          )}
+                          {job.quick_info.education_level && (
+                            <HStack justify="space-between">
+                              <Text color={mutedColor} fontSize="sm">Education</Text>
+                              <Badge colorScheme="teal" fontSize="xs">{job.quick_info.education_level}</Badge>
+                            </HStack>
+                          )}
+                          {job.quick_info.work_mode && (
+                            <HStack justify="space-between">
+                              <Text color={mutedColor} fontSize="sm">Work Mode</Text>
+                              <Badge colorScheme="orange" fontSize="xs">{job.quick_info.work_mode}</Badge>
+                            </HStack>
+                          )}
+                          {job.quick_info.industry && (
+                            <HStack justify="space-between">
+                              <Text color={mutedColor} fontSize="sm">Industry</Text>
+                              <Text fontWeight="medium" color={textColor} textAlign="right" fontSize="sm" maxW="150px">
+                                {job.quick_info.industry}
+                              </Text>
+                            </HStack>
+                          )}
+                          {job.quick_info.company_size && (
+                            <HStack justify="space-between">
+                              <Text color={mutedColor} fontSize="sm">Company Size</Text>
+                              <Text fontWeight="medium" color={textColor} textAlign="right" fontSize="sm" maxW="150px">
+                                {job.quick_info.company_size}
+                              </Text>
+                            </HStack>
+                          )}
+                          {job.quick_info.benefits && Array.isArray(job.quick_info.benefits) && job.quick_info.benefits.length > 0 && (
+                            <HStack justify="space-between">
+                              <Text color={mutedColor} fontSize="sm">Benefits</Text>
+                              <VStack align="end" spacing={1}>
+                                {job.quick_info.benefits.slice(0, 3).map((benefit, index) => (
+                                  <Badge key={index} colorScheme="green" fontSize="xs">
+                                    {benefit}
+                                  </Badge>
+                                ))}
+                                {job.quick_info.benefits.length > 3 && (
+                                  <Text fontSize="xs" color={mutedColor}>
+                                    +{job.quick_info.benefits.length - 3} more
+                                  </Text>
+                                )}
+                              </VStack>
+                            </HStack>
+                          )}
+                          {job.quick_info.skills && Array.isArray(job.quick_info.skills) && job.quick_info.skills.length > 0 && (
+                            <HStack justify="space-between">
+                              <Text color={mutedColor} fontSize="sm">Skills</Text>
+                              <VStack align="end" spacing={1}>
+                                {job.quick_info.skills.slice(0, 3).map((skill, index) => (
+                                  <Badge key={index} colorScheme="blue" fontSize="xs">
+                                    {skill}
+                                  </Badge>
+                                ))}
+                                {job.quick_info.skills.length > 3 && (
+                                  <Text fontSize="xs" color={mutedColor}>
+                                    +{job.quick_info.skills.length - 3} more
+                                  </Text>
+                                )}
+                              </VStack>
+                            </HStack>
+                          )}
+                          {job.quick_info.deadline && (
+                            <HStack justify="space-between">
+                              <Text color={mutedColor} fontSize="sm">Deadline</Text>
+                              <Text fontWeight="medium" color={textColor} textAlign="right" fontSize="sm">
+                                {formatDate(job.quick_info.deadline)}
+                              </Text>
                       </HStack>
                     )}
                   </VStack>
                 </CardBody>
               </Card>
+                  )}
             </VStack>
           </GridItem>
         </Grid>
+        </Stack>
       </Container>
     </Box>
   )

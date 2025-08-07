@@ -13,9 +13,14 @@ import {
   Link,
   IconButton,
   useToast,
+  Container,
+  useColorModeValue,
+  Center,
+  Spinner,
+  Flex,
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
-import { FaBookmark, FaRegBookmark } from 'react-icons/fa';
+import { FaBookmark, FaRegBookmark, FaCalendarAlt, FaUser, FaTag } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 const Blogs = () => {
@@ -25,6 +30,13 @@ const Blogs = () => {
   const [error, setError] = useState('');
   const { user } = useAuth();
   const toast = useToast();
+
+  // Theme colors
+  const bgColor = useColorModeValue('gray.50', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const mutedColor = useColorModeValue('gray.600', 'gray.400');
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -129,64 +141,243 @@ const Blogs = () => {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <Box bg={bgColor} minH="100vh" py={12}>
+        <Container maxW="container.xl">
+          <Center py={20}>
+            <VStack spacing={6}>
+              <Spinner size="xl" thickness="4px" color="blue.500" />
+              <Text fontSize="lg" color={mutedColor} fontWeight="medium">
+                Loading...
+              </Text>
+            </VStack>
+          </Center>
+        </Container>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box bg={bgColor} minH="100vh" py={12}>
+        <Container maxW="container.xl">
+          <Center py={20}>
+            <Text color="red.500" fontSize="lg">{error}</Text>
+          </Center>
+        </Container>
+      </Box>
+    );
+  }
+
   return (
-    <Box maxW="900px" mx="auto" py={10} px={4}>
-      <Heading mb={8} textAlign="center" color="blue.600">Blogs</Heading>
-      {loading ? (
-        <Text>Loading...</Text>
-      ) : error ? (
-        <Text color="red.500">{error}</Text>
-      ) : blogs.length === 0 ? (
-        <Text>No blogs available.</Text>
-      ) : (
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-          {blogs.map((blog) => (
-            <Box key={blog.id} position="relative">
-              <Link
-                as={RouterLink}
-                to={`/blogs/${blog.slug}`}
-                _hover={{ textDecoration: 'none' }}
-                display="block"
-              >
-                <Box borderWidth="1px" borderRadius="lg" p={4} bg="white" boxShadow="md" transition="box-shadow 0.2s" _hover={{ boxShadow: 'xl' }}>
-                  {blog.cover_image_url && (
-                    <Image src={blog.cover_image_url} alt={blog.title} borderRadius="md" mb={3} maxH="180px" objectFit="cover" w="100%" />
-                  )}
-                  <Heading size="md" mb={2} pr={8}>{blog.title}</Heading>
-                  <Text fontSize="sm" color="gray.600" mb={2}>{blog.excerpt}</Text>
-                  <Divider my={2} />
-                  <HStack justifyContent="space-between">
-                    <Text fontSize="xs" color="gray.500">By {blog.author_name || 'Unknown'}</Text>
-                    <Text fontSize="xs" color="gray.500">{blog.published_at ? new Date(blog.published_at).toLocaleDateString() : ''}</Text>
-                  </HStack>
-                  {blog.tags && blog.tags.length > 0 && (
-                    <HStack mt={2} spacing={2} flexWrap="wrap">
-                      {blog.tags.map((tag, idx) => (
-                        <Badge key={idx} colorScheme="blue">{tag}</Badge>
-                      ))}
-                    </HStack>
-                  )}
+    <Box bg={bgColor} minH="100vh" py={12}>
+      <Container maxW="container.xl">
+        <VStack spacing={12} align="stretch">
+          {/* Header */}
+          <Box textAlign="center" mb={8}>
+            <Heading 
+              size="3xl" 
+              mb={4} 
+              color={textColor} 
+              fontWeight="900"
+              fontFamily="'Poppins', sans-serif"
+              letterSpacing="tight"
+            >
+             Tech Articles & Industry Guides
+            </Heading>
+            <Text 
+              fontSize="xl" 
+              color={mutedColor}
+              fontFamily="'Poppins', sans-serif"
+              fontWeight="400"
+              maxW="600px"
+              mx="auto"
+            >
+Skills and professional development coverage to advance your career.
+</Text>
+          </Box>
+
+          {blogs.length === 0 ? (
+            <Center py={20}>
+              <VStack spacing={4}>
+                <Text fontSize="xl" color={mutedColor} fontWeight="medium">
+                  No stories available yet.
+                </Text>
+                <Text color={mutedColor}>
+                  Check back soon for amazing content!
+                </Text>
+              </VStack>
+            </Center>
+          ) : (
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
+              {blogs.map((blog) => (
+                <Box key={blog.id} position="relative">
+                  <Link
+                    as={RouterLink}
+                    to={`/blogs/${blog.slug}`}
+                    _hover={{ textDecoration: 'none' }}
+                    display="block"
+                  >
+                    <Box 
+                      bg={cardBg}
+                      borderRadius="2xl" 
+                      overflow="hidden"
+                      border="1px solid"
+                      borderColor={borderColor}
+                      transition="all 0.3s ease-in-out"
+                      _hover={{ 
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+                        borderColor: 'blue.300'
+                      }}
+                      h="full"
+                      display="flex"
+                      flexDirection="column"
+                    >
+                      {/* Cover Image */}
+                      {blog.cover_image_url && (
+                        <Box position="relative" overflow="hidden">
+                          <Image 
+                            src={blog.cover_image_url} 
+                            alt={blog.title} 
+                            w="100%"
+                            h="200px"
+                            objectFit="cover"
+                            transition="transform 0.3s ease-in-out"
+                            _groupHover={{ transform: 'scale(1.05)' }}
+                          />
+                          <Box
+                            position="absolute"
+                            top={0}
+                            left={0}
+                            right={0}
+                            bottom={0}
+                            bg="linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%)"
+                          />
+                        </Box>
+                      )}
+
+                      {/* Content */}
+                      <Box p={6} flex="1" display="flex" flexDirection="column">
+                        {/* Title */}
+                        <Heading 
+                          size="lg" 
+                          mb={3} 
+                          color={textColor}
+                          fontFamily="'Poppins', sans-serif"
+                          fontWeight="700"
+                          lineHeight="1.3"
+                          noOfLines={2}
+                        >
+                          {blog.title}
+                        </Heading>
+
+                        {/* Excerpt */}
+                        <Text 
+                          fontSize="md" 
+                          color={mutedColor} 
+                          mb={4}
+                          lineHeight="1.6"
+                          noOfLines={3}
+                          flex="1"
+                          fontFamily="'Poppins', sans-serif"
+                        >
+                          {blog.excerpt}
+                        </Text>
+
+                        {/* Meta Information */}
+                        <VStack align="start" spacing={3} mt="auto">
+                          <HStack spacing={4} color={mutedColor} fontSize="sm">
+                            <HStack spacing={1}>
+                              <FaUser size={12} />
+                              <Text fontWeight="500">
+                                {blog.author_name || 'Unknown Author'}
+                              </Text>
+                            </HStack>
+                            <HStack spacing={1}>
+                              <FaCalendarAlt size={12} />
+                              <Text>
+                                {formatDate(blog.published_at)}
+                              </Text>
+                            </HStack>
+                          </HStack>
+
+                          {/* Tags */}
+                          {blog.tags && blog.tags.length > 0 && (
+                            <Flex wrap="wrap" gap={2}>
+                              {blog.tags.slice(0, 3).map((tag, idx) => (
+                                <Badge 
+                                  key={idx} 
+                                  colorScheme="blue" 
+                                  variant="subtle"
+                                  fontSize="xs"
+                                  px={3}
+                                  py={1}
+                                  borderRadius="full"
+                                  fontWeight="500"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {blog.tags.length > 3 && (
+                                <Badge 
+                                  colorScheme="gray" 
+                                  variant="subtle"
+                                  fontSize="xs"
+                                  px={3}
+                                  py={1}
+                                  borderRadius="full"
+                                >
+                                  +{blog.tags.length - 3}
+                                </Badge>
+                              )}
+                            </Flex>
+                          )}
+                        </VStack>
+                      </Box>
+                    </Box>
+                  </Link>
+
+                  {/* Save Button */}
+                  <IconButton
+                    aria-label={savedBlogs.has(blog.slug) ? 'Unsave blog' : 'Save blog'}
+                    icon={savedBlogs.has(blog.slug) ? <FaBookmark /> : <FaRegBookmark />}
+                    color={savedBlogs.has(blog.slug) ? 'blue.500' : mutedColor}
+                    variant="ghost"
+                    size="md"
+                    position="absolute"
+                    top={4}
+                    right={4}
+                    bg={cardBg}
+                    borderRadius="full"
+                    boxShadow="md"
+                    _hover={{ 
+                      bg: 'blue.50',
+                      transform: 'scale(1.1)'
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSaveBlog(blog.slug);
+                    }}
+                  />
                 </Box>
-              </Link>
-              <IconButton
-                aria-label={savedBlogs.has(blog.slug) ? 'Unsave blog' : 'Save blog'}
-                icon={savedBlogs.has(blog.slug) ? <FaBookmark /> : <FaRegBookmark />}
-                colorScheme={savedBlogs.has(blog.slug) ? 'green' : 'gray'}
-                variant="ghost"
-                size="sm"
-                position="absolute"
-                top={2}
-                right={2}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSaveBlog(blog.slug);
-                }}
-              />
-            </Box>
-          ))}
-        </SimpleGrid>
-      )}
+              ))}
+            </SimpleGrid>
+          )}
+        </VStack>
+      </Container>
     </Box>
   );
 };
