@@ -26,10 +26,20 @@ import {
   ModalBody,
   ModalCloseButton,
   HStack,
+  Container,
+  useColorModeValue,
+  Card,
+  CardBody,
+  CardHeader,
+  Badge,
+  Flex,
+  Spacer,
+  useBreakpointValue,
+  Stack,
 } from '@chakra-ui/react';
 import MediumEditor from '../../components/MediumEditor.jsx';
 import { DeleteIcon } from '@chakra-ui/icons';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaPlus, FaFileAlt } from 'react-icons/fa';
 
 const BlogManagement = () => {
   const { user, isAdmin } = useAuth();
@@ -55,6 +65,19 @@ const BlogManagement = () => {
     onClose: onEditClose 
   } = useDisclosure();
   const cancelRef = React.useRef();
+
+  // Theme colors
+  const bgColor = useColorModeValue('gray.50', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const mutedColor = useColorModeValue('gray.600', 'gray.400');
+
+  // Responsive values
+  const containerMaxW = useBreakpointValue({ base: '100%', md: 'container.md', lg: 'container.lg' });
+  const buttonSize = useBreakpointValue({ base: 'lg', md: 'md' });
+  const inputSize = useBreakpointValue({ base: 'lg', md: 'md' });
+  const headingSize = useBreakpointValue({ base: 'lg', md: 'xl' });
 
   useEffect(() => {
     fetchPosts();
@@ -248,88 +271,199 @@ const BlogManagement = () => {
   };
 
   if (!isAdmin) {
-    return <Box p={8} textAlign="center"><Heading size="md">Access denied. Admins only.</Heading></Box>;
+    return (
+      <Box bg={bgColor} minH="100vh" py={8}>
+        <Container maxW={containerMaxW}>
+          <Card bg={cardBg} p={8} textAlign="center">
+            <Heading size={headingSize} color="red.500">Access denied. Admins only.</Heading>
+          </Card>
+        </Container>
+      </Box>
+    );
   }
 
   return (
-    <Box maxW="700px" mx="auto" py={10} px={4}>
-      <Heading mb={8} textAlign="center" color="blue.600">Blog Management</Heading>
-      <Box as="form" onSubmit={handleSubmit} mb={12} p={6} borderRadius="lg" boxShadow="md" bg="white">
-        <VStack spacing={4} align="stretch">
-          <Heading size="md" mb={2}>Post a New Blog</Heading>
-          <Input
-            type="text"
-            placeholder="Blog Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            size="md"
-            bg="gray.50"
-          />
-          <Input
-            type="text"
-            placeholder="Excerpt"
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-            size="md"
-            bg="gray.50"
-          />
-          {/* Replace Textarea with MediumEditor */}
-          <MediumEditor value={content} onChange={setContent} />
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={e => setCoverImageFile(e.target.files[0])}
-            size="md"
-            bg="gray.50"
-          />
-          <Input
-            type="text"
-            placeholder="Tags (comma separated)"
-            value={tagsInput}
-            onChange={(e) => setTagsInput(e.target.value)}
-            size="md"
-            bg="gray.50"
-          />
-          <Button type="submit" colorScheme="blue" isLoading={loading} size="md" alignSelf="flex-end">
-            Post Blog
-          </Button>
-          {error && <Text color="red.500">{error}</Text>}
-        </VStack>
-      </Box>
-      {/* Blog list with delete button */}
-      <Heading size="md" mb={6} color="blue.700">Existing Blog Posts</Heading>
-      {loading ? (
-        <Text>Loading...</Text>
-      ) : (
-        <VStack spacing={4} align="stretch">
-          {posts.map((post) => (
-            <Box key={post.id} borderWidth="1px" borderRadius="lg" p={4} bg="white" boxShadow="sm" position="relative">
-              <Heading size="sm">{post.title}</Heading>
-              <Divider my={2} />
-              <Box fontSize="md" color="gray.800" dangerouslySetInnerHTML={{ __html: post.content }} />
-              <Text fontSize="xs" color="gray.500">
-                Posted on {new Date(post.created_at).toLocaleString()}
-              </Text>
-              <HStack position="absolute" top={2} right={2} spacing={1}>
-                <IconButton
-                  icon={<FaEdit />}
-                  colorScheme="blue"
-                  size="sm"
-                  aria-label="Edit blog"
-                  onClick={() => openEditDialog(post)}
-                />
-                <IconButton
-                  icon={<DeleteIcon />}
-                  colorScheme="red"
-                  size="sm"
-                  aria-label="Delete blog"
-                  onClick={() => openDeleteDialog(post)}
-                />
+    <Box bg={bgColor} minH="100vh" py={{ base: 4, md: 8 }}>
+      <Container maxW={containerMaxW} px={{ base: 2, md: 4 }}>
+        <VStack spacing={8} align="stretch">
+          {/* Header */}
+          <Box textAlign="center">
+            <Heading 
+              size={headingSize} 
+              mb={4} 
+              color={textColor}
+              fontFamily="'Poppins', sans-serif"
+            >
+              Blog Management
+            </Heading>
+            <Text color={mutedColor} fontSize={{ base: 'md', md: 'lg' }}>
+              Create and manage your blog posts
+            </Text>
+          </Box>
+
+          {/* Create New Blog Form */}
+          <Card bg={cardBg} shadow="lg" borderRadius="xl">
+            <CardHeader pb={4}>
+              <HStack spacing={3}>
+                <FaPlus color="blue" />
+                <Heading size="md" color={textColor}>Create New Blog Post</Heading>
               </HStack>
-            </Box>
-          ))}
+            </CardHeader>
+            <CardBody>
+              <Box as="form" onSubmit={handleSubmit}>
+                <VStack spacing={6} align="stretch">
+                  <Input
+                    type="text"
+                    placeholder="Blog Title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    size={inputSize}
+                    bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                  />
+                  <Textarea
+                    placeholder="Brief excerpt/summary of the blog post..."
+                    value={excerpt}
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    size={inputSize}
+                    bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                    rows={3}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Tags (comma separated, e.g., tech, programming, tips)"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                    size={inputSize}
+                    bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                  />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => setCoverImageFile(e.target.files[0])}
+                    size={inputSize}
+                    bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                    p={2}
+                  />
+                  
+                  {/* Content Editor */}
+                  <Box>
+                    <Text mb={3} fontSize="sm" color={mutedColor} fontWeight="medium">
+                      Blog Content
+                    </Text>
+                    <MediumEditor value={content} onChange={setContent} />
+                  </Box>
+
+                  <Button 
+                    type="submit" 
+                    colorScheme="blue" 
+                    isLoading={loading} 
+                    size={buttonSize}
+                    leftIcon={<FaFileAlt />}
+                    w="full"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    py={{ base: 6, md: 4 }}
+                  >
+                    {loading ? 'Publishing...' : 'Publish Blog Post'}
+                  </Button>
+                  
+                  {error && (
+                    <Text color="red.500" fontSize="sm" textAlign="center">
+                      {error}
+                    </Text>
+                  )}
+                </VStack>
+              </Box>
+            </CardBody>
+          </Card>
+
+          {/* Existing Blog Posts */}
+          <Card bg={cardBg} shadow="lg" borderRadius="xl">
+            <CardHeader pb={4}>
+              <HStack spacing={3}>
+                <FaFileAlt color="blue" />
+                <Heading size="md" color={textColor}>Existing Blog Posts</Heading>
+              </HStack>
+            </CardHeader>
+            <CardBody>
+              {loading ? (
+                <Box textAlign="center" py={8}>
+                  <Text color={mutedColor}>Loading posts...</Text>
+                </Box>
+              ) : posts.length === 0 ? (
+                <Box textAlign="center" py={8}>
+                  <Text color={mutedColor}>No blog posts yet. Create your first one above!</Text>
+                </Box>
+              ) : (
+                <VStack spacing={4} align="stretch">
+                  {posts.map((post) => (
+                    <Card key={post.id} bg="gray.50" borderRadius="lg" p={4}>
+                      <VStack align="stretch" spacing={3}>
+                        <Flex align="center" justify="space-between">
+                          <Heading size="sm" color={textColor} noOfLines={2}>
+                            {post.title}
+                          </Heading>
+                          <HStack spacing={2}>
+                            <IconButton
+                              icon={<FaEdit />}
+                              colorScheme="blue"
+                              size="sm"
+                              aria-label="Edit blog"
+                              onClick={() => openEditDialog(post)}
+                            />
+                            <IconButton
+                              icon={<DeleteIcon />}
+                              colorScheme="red"
+                              size="sm"
+                              aria-label="Delete blog"
+                              onClick={() => openDeleteDialog(post)}
+                            />
+                          </HStack>
+                        </Flex>
+                        
+                        <Text fontSize="sm" color={mutedColor} noOfLines={2}>
+                          {post.excerpt}
+                        </Text>
+                        
+                        {post.tags && post.tags.length > 0 && (
+                          <Flex wrap="wrap" gap={2}>
+                            {post.tags.slice(0, 3).map((tag, idx) => (
+                              <Badge key={idx} colorScheme="blue" variant="subtle" fontSize="xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {post.tags.length > 3 && (
+                              <Badge colorScheme="gray" variant="subtle" fontSize="xs">
+                                +{post.tags.length - 3}
+                              </Badge>
+                            )}
+                          </Flex>
+                        )}
+                        
+                        <Text fontSize="xs" color={mutedColor}>
+                          Posted: {new Date(post.created_at).toLocaleDateString()}
+                        </Text>
+                      </VStack>
+                    </Card>
+                  ))}
+                </VStack>
+              )}
+            </CardBody>
+          </Card>
         </VStack>
-      )}
+      </Container>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
@@ -338,7 +472,7 @@ const BlogManagement = () => {
         onClose={onClose}
       >
         <AlertDialogOverlay>
-          <AlertDialogContent>
+          <AlertDialogContent mx={4}>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
               Delete Blog Post
             </AlertDialogHeader>
@@ -348,7 +482,7 @@ const BlogManagement = () => {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
+              <Button ref={cancelRef} onClick={onClose} size="sm">
                 Cancel
               </Button>
               <Button 
@@ -356,6 +490,7 @@ const BlogManagement = () => {
                 onClick={handleDelete} 
                 ml={3}
                 isLoading={deleteLoading}
+                size="sm"
               >
                 Delete
               </Button>
@@ -365,30 +500,36 @@ const BlogManagement = () => {
       </AlertDialog>
 
       {/* Edit Blog Modal */}
-      <Modal isOpen={isEditOpen} onClose={onEditClose} size="6xl">
+      <Modal isOpen={isEditOpen} onClose={onEditClose} size="full" scrollBehavior="inside">
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent mx={2} my={4} maxH="90vh">
           <ModalHeader>Edit Blog Post</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             {postToEdit && (
               <Box as="form" onSubmit={handleEditSubmit}>
-                <VStack spacing={4} align="stretch">
+                <VStack spacing={6} align="stretch">
                   <Input
                     type="text"
                     placeholder="Blog Title"
                     value={postToEdit.title}
                     onChange={(e) => setPostToEdit({...postToEdit, title: e.target.value})}
-                    size="md"
+                    size={inputSize}
                     bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
                   />
-                  <Input
-                    type="text"
+                  <Textarea
                     placeholder="Excerpt"
                     value={postToEdit.excerpt}
                     onChange={(e) => setPostToEdit({...postToEdit, excerpt: e.target.value})}
-                    size="md"
+                    size={inputSize}
                     bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                    rows={3}
                   />
                   <Input
                     type="text"
@@ -398,30 +539,48 @@ const BlogManagement = () => {
                       ...postToEdit, 
                       tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
                     })}
-                    size="md"
+                    size={inputSize}
                     bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
                   />
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={e => setEditCoverImageFile(e.target.files[0])}
-                    size="md"
+                    size={inputSize}
                     bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                    p={2}
                   />
                   <Text fontSize="sm" color="gray.600">
                     Leave empty to keep current cover image
                   </Text>
-                  <MediumEditor value={editContent} onChange={setEditContent} />
-                  <HStack justify="flex-end" spacing={3}>
-                    <Button onClick={onEditClose}>Cancel</Button>
+                  
+                  <Box>
+                    <Text mb={3} fontSize="sm" color={mutedColor} fontWeight="medium">
+                      Blog Content
+                    </Text>
+                    <MediumEditor value={editContent} onChange={setEditContent} />
+                  </Box>
+                  
+                  <Stack direction={{ base: 'column', sm: 'row' }} spacing={3}>
+                    <Button onClick={onEditClose} variant="outline" size={buttonSize} flex={1}>
+                      Cancel
+                    </Button>
                     <Button 
                       type="submit" 
                       colorScheme="blue" 
                       isLoading={editLoading}
+                      size={buttonSize}
+                      flex={1}
                     >
                       Update Blog
                     </Button>
-                  </HStack>
+                  </Stack>
                 </VStack>
               </Box>
             )}

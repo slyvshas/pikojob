@@ -26,6 +26,11 @@ import {
   TabPanels,
   Tab,
   TabPanel,
+  useColorModeValue,
+  useBreakpointValue,
+  Stack,
+  Center,
+  Spinner,
 } from '@chakra-ui/react'
 import { FaBookmark, FaMapMarkerAlt, FaBriefcase, FaMoneyBillWave, FaExternalLinkAlt, FaNewspaper, FaBook, FaCalendarAlt } from 'react-icons/fa'
 import { supabase } from '../lib/supabase'
@@ -41,6 +46,19 @@ const SavedItems = () => {
   const navigate = useNavigate()
   const toast = useToast()
   const { user, loading: authLoading } = useAuth()
+
+  // Theme colors
+  const bgColor = useColorModeValue('gray.50', 'gray.900')
+  const cardBg = useColorModeValue('white', 'gray.800')
+  const borderColor = useColorModeValue('gray.200', 'gray.700')
+  const textColor = useColorModeValue('gray.800', 'white')
+  const mutedColor = useColorModeValue('gray.600', 'gray.400')
+
+  // Responsive values
+  const containerMaxW = useBreakpointValue({ base: '100%', md: 'container.md', lg: 'container.xl' })
+  const buttonSize = useBreakpointValue({ base: 'lg', md: 'md' })
+  const headingSize = useBreakpointValue({ base: 'lg', md: 'xl' })
+  const tabSize = useBreakpointValue({ base: 'sm', md: 'md' })
 
   useEffect(() => {
     if (authLoading) return; // Wait for auth to finish loading
@@ -454,533 +472,595 @@ const SavedItems = () => {
 
   if (!user) {
     return (
-      <Container maxW="container.md" py={8}>
-        <Box textAlign="center">
-          <Heading size="lg">Please sign in to view your saved items</Heading>
-          <Button mt={4} onClick={() => navigate('/login')}>Sign In</Button>
-        </Box>
-      </Container>
+      <Box bg={bgColor} minH="100vh" py={8}>
+        <Container maxW={containerMaxW}>
+          <Card bg={cardBg} p={8} textAlign="center">
+            <Heading size={headingSize} mb={4}>Please sign in to view your saved items</Heading>
+            <Button size={buttonSize} onClick={() => navigate('/login')}>Sign In</Button>
+          </Card>
+        </Container>
+      </Box>
     )
   }
 
   const totalSavedItems = savedJobs.length + savedCourses.length + savedBlogs.length + savedBooks.length + savedOpportunities.length
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <VStack spacing={8} align="stretch">
-        <Heading>Saved Items ({totalSavedItems})</Heading>
+    <Box bg={bgColor} minH="100vh" py={{ base: 4, md: 8 }}>
+      <Container maxW={containerMaxW} px={{ base: 2, md: 4 }}>
+        <VStack spacing={8} align="stretch">
+          {/* Header */}
+          <Box textAlign="center">
+            <Heading 
+              size={headingSize} 
+              mb={4} 
+              color={textColor}
+              fontFamily="'Poppins', sans-serif"
+            >
+              Saved Items ({totalSavedItems})
+            </Heading>
+            <Text color={mutedColor} fontSize={{ base: 'md', md: 'lg' }}>
+              Your personalized collection of saved content
+            </Text>
+          </Box>
 
-        <Tabs variant="enclosed" colorScheme="blue">
-          <TabList>
-            <Tab>
-              <HStack>
-                <FaBriefcase />
-                <Text>Jobs ({savedJobs.length})</Text>
-              </HStack>
-            </Tab>
-            <Tab>
-              <HStack>
-                <FaBookmark />
-                <Text>Courses ({savedCourses.length})</Text>
-              </HStack>
-            </Tab>
-            <Tab>
-              <HStack>
-                <FaNewspaper />
-                <Text>Blogs ({savedBlogs.length})</Text>
-              </HStack>
-            </Tab>
-            <Tab>
-              <HStack>
-                <FaBook />
-                <Text>Books ({savedBooks.length})</Text>
-              </HStack>
-            </Tab>
-            <Tab>
-              <HStack>
-                <FaMoneyBillWave />
-                <Text>Opportunities ({savedOpportunities.length})</Text>
-              </HStack>
-            </Tab>
-          </TabList>
+          {/* Loading State */}
+          {loading && (
+            <Center py={12}>
+              <VStack spacing={4}>
+                <Spinner size="xl" thickness="4px" color="blue.500" />
+                <Text color={mutedColor}>Loading your saved items...</Text>
+              </VStack>
+            </Center>
+          )}
 
-          <TabPanels>
-            {/* Jobs Tab */}
-            <TabPanel>
-              {loading ? (
-                <Text>Loading saved jobs...</Text>
-              ) : savedJobs.length === 0 ? (
-                <Text>You haven't saved any jobs yet.</Text>
-              ) : (
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
-                  {savedJobs.map((job) => (
-                    <Box
-                      key={job.id}
-                      p={6}
-                      borderRadius="2xl"
-                      boxShadow="md"
-                      borderWidth="1px"
-                      borderColor="gray.200"
-                    >
-                      <VStack align="start" spacing={4}>
-                        <Flex justify="space-between" width="100%" align="center">
-                          {job.company_logo_url && (
-                            <Image
-                              src={job.company_logo_url}
-                              alt={`${job.company_name} logo`}
-                              boxSize="60px"
-                              objectFit="contain"
-                              borderRadius="md"
-                            />
-                          )}
-                          <IconButton
-                            aria-label="Unsave job"
-                            icon={<FaBookmark />}
-                            colorScheme="blue"
-                            variant="ghost"
-                            onClick={() => handleUnsaveJob(job.id)}
-                          />
-                        </Flex>
+          {/* Tabs */}
+          {!loading && (
+            <Tabs variant="enclosed" colorScheme="blue" size={tabSize}>
+              <TabList overflowX="auto" overflowY="hidden" whiteSpace="nowrap">
+                <Tab minW="auto" px={{ base: 3, md: 4 }}>
+                  <HStack spacing={2}>
+                    <FaBriefcase />
+                    <Text fontSize={{ base: 'xs', md: 'sm' }}>Jobs ({savedJobs.length})</Text>
+                  </HStack>
+                </Tab>
+                <Tab minW="auto" px={{ base: 3, md: 4 }}>
+                  <HStack spacing={2}>
+                    <FaBookmark />
+                    <Text fontSize={{ base: 'xs', md: 'sm' }}>Courses ({savedCourses.length})</Text>
+                  </HStack>
+                </Tab>
+                <Tab minW="auto" px={{ base: 3, md: 4 }}>
+                  <HStack spacing={2}>
+                    <FaNewspaper />
+                    <Text fontSize={{ base: 'xs', md: 'sm' }}>Blogs ({savedBlogs.length})</Text>
+                  </HStack>
+                </Tab>
+                <Tab minW="auto" px={{ base: 3, md: 4 }}>
+                  <HStack spacing={2}>
+                    <FaBook />
+                    <Text fontSize={{ base: 'xs', md: 'sm' }}>Books ({savedBooks.length})</Text>
+                  </HStack>
+                </Tab>
+                <Tab minW="auto" px={{ base: 3, md: 4 }}>
+                  <HStack spacing={2}>
+                    <FaMoneyBillWave />
+                    <Text fontSize={{ base: 'xs', md: 'sm' }}>Opportunities ({savedOpportunities.length})</Text>
+                  </HStack>
+                </Tab>
+              </TabList>
 
-                        <Box>
-                          <Heading size="md" mb={1}>
-                            {job.title}
-                          </Heading>
-                          <Text fontWeight="medium" color="gray.600">
-                            {job.company_name}
-                          </Text>
-                        </Box>
-
-                        <VStack align="start" spacing={1} fontSize="sm" color="gray.500">
-                          <HStack>
-                            <FaMapMarkerAlt />
-                            <Text>{job.location}</Text>
-                          </HStack>
-                          <HStack>
-                            <FaBriefcase />
-                            <Text>{job.employment_type}</Text>
-                          </HStack>
-                          <HStack>
-                            <FaMoneyBillWave />
-                            <Text>{job.salary}</Text>
-                          </HStack>
-                          <Text>Saved on: {new Date(job.saved_at).toLocaleDateString()}</Text>
-                        </VStack>
-
-                        {job.tags && (
-                          <Flex wrap="wrap" gap={2}>
-                            {job.tags.split(',').map((tag, index) => (
-                              <Badge
-                                key={index}
-                                colorScheme="blue"
-                                variant="solid"
-                                borderRadius="full"
-                                px={2}
-                                py={1}
-                                fontSize="xs"
-                              >
-                                {tag.trim()}
-                              </Badge>
-                            ))}
-                          </Flex>
-                        )}
-
-                        <Button
-                          onClick={() => navigate(`/jobs/${job.id}`)}
-                          colorScheme="blue"
-                          size="md"
-                          width="100%"
-                        >
-                          View Job Details
+              <TabPanels>
+                {/* Jobs Tab */}
+                <TabPanel px={{ base: 2, md: 4 }}>
+                  {savedJobs.length === 0 ? (
+                    <Center py={12}>
+                      <VStack spacing={4}>
+                        <Text color={mutedColor} fontSize="lg">You haven't saved any jobs yet.</Text>
+                        <Button size={buttonSize} onClick={() => navigate('/jobs')}>
+                          Browse Jobs
                         </Button>
                       </VStack>
-                    </Box>
-                  ))}
-                </SimpleGrid>
-              )}
-            </TabPanel>
-
-            {/* Courses Tab */}
-            <TabPanel>
-              {loading ? (
-                <Text>Loading saved courses...</Text>
-              ) : savedCourses.length === 0 ? (
-                <Text>You haven't saved any courses yet.</Text>
-              ) : (
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  {savedCourses.map((course) => {
-                    const isNew = (Date.now() - new Date(course.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
-                    return (
-                      <Card
-                        key={course.id}
-                        boxShadow="lg"
-                        borderRadius="2xl"
-                        bg="white"
-                        borderLeft="6px solid #3182ce"
-                        transition="transform 0.2s, box-shadow 0.2s"
-                        _hover={{ transform: 'translateY(-6px) scale(1.02)', boxShadow: '2xl' }}
-                        p={0}
-                      >
-                        <CardHeader
-                          bgGradient="linear(to-r, blue.500, blue.300)"
-                          color="white"
-                          borderTopLeftRadius="2xl"
-                          borderTopRightRadius="2xl"
-                          py={4}
-                          px={6}
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="space-between"
-                          flexWrap="wrap"
+                    </Center>
+                  ) : (
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={{ base: 4, md: 6 }}>
+                      {savedJobs.map((job) => (
+                        <Card
+                          key={job.id}
+                          bg={cardBg}
+                          borderRadius="xl"
+                          boxShadow="md"
+                          border="1px solid"
+                          borderColor={borderColor}
+                          overflow="hidden"
                         >
-                          <Box>
-                            <Heading size="md">{course.title}</Heading>
-                            <Text fontSize="sm" color="whiteAlpha.800" mt={1}>{course.provider}</Text>
-                            {course.category && (
-                              <Badge colorScheme="purple" mt={2} fontSize="xs">
-                                {course.category}
-                              </Badge>
-                            )}
-                          </Box>
-                          <VStack align="end" spacing={1}>
-                            {isNew && <Badge colorScheme="green">New</Badge>}
-                            <IconButton
-                              aria-label="Unsave course"
-                              icon={<FaBookmark />}
-                              colorScheme="blue"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleUnsaveCourse(course.id)}
-                            />
-                          </VStack>
-                        </CardHeader>
-                        <CardBody px={6} py={4}>
-                          <Text mb={4} color="gray.700" fontSize="md" fontWeight="medium">
-                            {course.description}
-                          </Text>
-                          <Divider my={2} />
-                          <ChakraLink href={course.link} isExternal color="blue.500" fontWeight="bold" fontSize="md">
-                            Go to Course <Icon as={FaExternalLinkAlt} ml={1} />
-                          </ChakraLink>
-                        </CardBody>
-                        <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
-                          <VStack align="start" spacing={1} width="100%">
-                            <Text fontSize="xs" color="gray.500">
-                              Posted on {new Date(course.created_at).toLocaleString()}
-                            </Text>
-                            <Text fontSize="xs" color="gray.500">
-                              Saved on: {new Date(course.saved_at).toLocaleDateString()}
-                            </Text>
-                          </VStack>
-                        </CardFooter>
-                      </Card>
-                    );
-                  })}
-                </SimpleGrid>
-              )}
-            </TabPanel>
-
-            {/* Blogs Tab */}
-            <TabPanel>
-              {loading ? (
-                <Text>Loading saved blogs...</Text>
-              ) : savedBlogs.length === 0 ? (
-                <Text>You haven't saved any blogs yet.</Text>
-              ) : (
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  {savedBlogs.map((blog) => (
-                    <Card
-                      key={blog.slug}
-                      boxShadow="lg"
-                      borderRadius="2xl"
-                      bg="white"
-                      borderLeft="6px solid #38a169"
-                      transition="transform 0.2s, box-shadow 0.2s"
-                      _hover={{ transform: 'translateY(-6px) scale(1.02)', boxShadow: '2xl' }}
-                      p={0}
-                    >
-                      <CardHeader
-                        bgGradient="linear(to-r, green.500, green.300)"
-                        color="white"
-                        borderTopLeftRadius="2xl"
-                        borderTopRightRadius="2xl"
-                        py={4}
-                        px={6}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="space-between"
-                        flexWrap="wrap"
-                      >
-                                                 <Box>
-                           <Heading size="md">{blog.title}</Heading>
-                           {blog.cover_image_url && (
-                             <Image
-                               src={blog.cover_image_url}
-                               alt={blog.title}
-                               boxSize="60px"
-                               objectFit="cover"
-                               borderRadius="md"
-                               mt={2}
-                             />
-                           )}
-                         </Box>
-                        <IconButton
-                          aria-label="Unsave blog"
-                          icon={<FaBookmark />}
-                          colorScheme="green"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleUnsaveBlog(blog.slug)}
-                        />
-                      </CardHeader>
-                      <CardBody px={6} py={4}>
-                        <Text mb={4} color="gray.700" fontSize="md" fontWeight="medium">
-                          {blog.excerpt}
-                        </Text>
-                        <Divider my={2} />
-                        <Button
-                          onClick={() => navigate(`/blogs/${blog.slug}`)}
-                          colorScheme="green"
-                          size="md"
-                          width="100%"
-                        >
-                          Read Blog Post
-                        </Button>
-                      </CardBody>
-                      <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
-                        <VStack align="start" spacing={1} width="100%">
-                                                     <Text fontSize="xs" color="gray.500">
-                             Posted on {new Date(blog.published_at).toLocaleString()}
-                           </Text>
-                          <Text fontSize="xs" color="gray.500">
-                            Saved on: {new Date(blog.saved_at).toLocaleDateString()}
-                          </Text>
-                        </VStack>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </SimpleGrid>
-              )}
-            </TabPanel>
-
-            {/* Books Tab */}
-            <TabPanel>
-              {loading ? (
-                <Text>Loading saved books...</Text>
-              ) : savedBooks.length === 0 ? (
-                <Text>You haven't saved any books yet.</Text>
-              ) : (
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-                  {savedBooks.map((book) => {
-                    const isNew = (Date.now() - new Date(book.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
-                    
-                    return (
-                      <Card
-                        key={book.id}
-                        boxShadow="lg"
-                        borderRadius="2xl"
-                        bg="white"
-                        borderLeft="6px solid #3182ce"
-                        transition="transform 0.2s, box-shadow 0.2s"
-                        _hover={{ transform: 'translateY(-6px) scale(1.02)', boxShadow: '2xl' }}
-                        p={0}
-                      >
-                        <CardHeader
-                          bgGradient="linear(to-r, blue.500, blue.300)"
-                          color="white"
-                          borderTopLeftRadius="2xl"
-                          borderTopRightRadius="2xl"
-                          py={4}
-                          px={6}
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="space-between"
-                          flexWrap="wrap"
-                        >
-                          <Box>
-                            <Heading size="md">{book.title}</Heading>
-                            {book.author && (
-                              <Text fontSize="sm" color="whiteAlpha.800" mt={1}>
-                                by {book.author}
-                              </Text>
-                            )}
-                            {book.category && (
-                              <Badge colorScheme="purple" mt={2} fontSize="xs">
-                                {book.category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                              </Badge>
-                            )}
-                          </Box>
-                          <VStack align="end" spacing={1}>
-                            {isNew && <Badge colorScheme="green">New</Badge>}
-                            <IconButton
-                              aria-label="Unsave book"
-                              icon={<FaBookmark />}
-                              colorScheme="blue"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleUnsaveBook(book.id)}
-                            />
-                          </VStack>
-                        </CardHeader>
-                        <CardBody px={6} py={4}>
-                          {book.cover_image_url && (
-                            <Box mb={4} textAlign="center">
-                              <Image
-                                src={book.cover_image_url}
-                                alt={book.title}
-                                maxH="120px"
-                                objectFit="contain"
-                                borderRadius="md"
-                                mx="auto"
+                          <CardHeader pb={4}>
+                            <Flex justify="space-between" align="center">
+                              {job.company_logo_url && (
+                                <Image
+                                  src={job.company_logo_url}
+                                  alt={`${job.company_name} logo`}
+                                  boxSize={{ base: '40px', md: '50px' }}
+                                  objectFit="contain"
+                                  borderRadius="md"
+                                />
+                              )}
+                              <IconButton
+                                aria-label="Unsave job"
+                                icon={<FaBookmark />}
+                                colorScheme="blue"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleUnsaveJob(job.id)}
                               />
-                            </Box>
-                          )}
-                          <Text mb={4} color="gray.700" fontSize="md" fontWeight="medium">
-                            {book.description}
-                          </Text>
-                          <HStack spacing={4} fontSize="xs" color="gray.500" mb={3}>
-                            {book.pages && (
-                              <Text>{book.pages} pages</Text>
-                            )}
-                            {book.language && (
-                              <Text>{book.language}</Text>
-                            )}
-                            {book.format && (
-                              <Badge colorScheme="purple" variant="subtle" fontSize="xs">
-                                {book.format.toUpperCase()}
-                              </Badge>
-                            )}
-                          </HStack>
-                          <Divider my={2} />
-                          <ChakraLink href={book.link} isExternal color="blue.500" fontWeight="bold" fontSize="md">
-                            Download Book <Icon as={FaExternalLinkAlt} ml={1} />
-                          </ChakraLink>
-                        </CardBody>
-                        <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
-                          <VStack align="start" spacing={1} width="100%">
-                            <Text fontSize="xs" color="gray.500">
-                              Posted on {new Date(book.created_at).toLocaleString()}
-                            </Text>
-                            <Text fontSize="xs" color="gray.500">
-                              Saved on: {new Date(book.saved_at).toLocaleDateString()}
-                            </Text>
-                          </VStack>
-                        </CardFooter>
-                      </Card>
-                    );
-                  })}
-                </SimpleGrid>
-              )}
-            </TabPanel>
+                            </Flex>
+                          </CardHeader>
 
-            {/* Opportunities Tab */}
-            <TabPanel>
-              {loading ? (
-                <Text>Loading saved opportunities...</Text>
-              ) : savedOpportunities.length === 0 ? (
-                <Text>You haven't saved any opportunities yet.</Text>
-              ) : (
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-                  {savedOpportunities.map((opportunity) => {
-                    const deadlineApproaching = opportunity.deadline && (new Date(opportunity.deadline) - new Date()) <= 30 * 24 * 60 * 60 * 1000 && (new Date(opportunity.deadline) - new Date()) >= 0;
-                    const deadlinePassed = opportunity.deadline && new Date(opportunity.deadline) < new Date();
-                    
-                    return (
-                      <Card
-                        key={opportunity.id}
-                        boxShadow="lg"
-                        borderRadius="2xl"
-                        bg="white"
-                        borderLeft="6px solid #805ad5"
-                        transition="transform 0.2s, box-shadow 0.2s"
-                        _hover={{ transform: 'translateY(-6px) scale(1.02)', boxShadow: '2xl' }}
-                        p={0}
-                      >
-                        <CardHeader
-                          bgGradient="linear(to-r, purple.500, purple.300)"
-                          color="white"
-                          borderTopLeftRadius="2xl"
-                          borderTopRightRadius="2xl"
-                          py={4}
-                          px={6}
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="space-between"
-                          flexWrap="wrap"
-                        >
-                          <Box>
-                            <Heading size="md">{opportunity.title}</Heading>
-                            {opportunity.organization && (
-                              <Text fontSize="sm" mt={1}>
-                                {opportunity.organization}
-                              </Text>
-                            )}
-                          </Box>
-                          <IconButton
-                            aria-label="Unsave opportunity"
-                            icon={<FaBookmark />}
-                            colorScheme="purple"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleUnsaveOpportunity(opportunity.id)}
-                          />
-                        </CardHeader>
-                        <CardBody px={6} py={4}>
-                          <VStack align="start" spacing={3}>
-                            {opportunity.category && (
-                              <Badge colorScheme="purple" variant="subtle" fontSize="xs">
-                                {opportunity.category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                              </Badge>
-                            )}
-                            {opportunity.location && (
-                              <HStack spacing={1}>
-                                <Icon as={FaMapMarkerAlt} color="gray.500" fontSize="xs" />
-                                <Text fontSize="xs" color="gray.600">
-                                  {opportunity.location}
+                          <CardBody pt={0}>
+                            <VStack align="stretch" spacing={4}>
+                              <Box>
+                                <Heading size="sm" mb={2} noOfLines={2}>
+                                  {job.title}
+                                </Heading>
+                                <Text fontWeight="medium" color={mutedColor} fontSize="sm">
+                                  {job.company_name}
                                 </Text>
-                              </HStack>
-                            )}
-                            {opportunity.deadline && (
-                              <HStack spacing={1}>
-                                <Icon as={FaCalendarAlt} color="gray.500" fontSize="xs" />
-                                <Text fontSize="xs" color={deadlinePassed ? 'red.500' : deadlineApproaching ? 'orange.500' : 'gray.600'}>
-                                  Deadline: {new Date(opportunity.deadline).toLocaleDateString()}
-                                </Text>
-                              </HStack>
-                            )}
-                            <Text color="gray.700" fontSize="sm" noOfLines={3}>
-                              {opportunity.description}
-                            </Text>
-                          </VStack>
-                        </CardBody>
-                        <CardFooter px={6} py={3} bg="gray.50" borderBottomLeftRadius="2xl" borderBottomRightRadius="2xl">
-                          <VStack align="start" spacing={1} width="100%">
+                              </Box>
+
+                              <VStack align="start" spacing={2} fontSize="sm" color={mutedColor}>
+                                <HStack spacing={2}>
+                                  <FaMapMarkerAlt size={12} />
+                                  <Text fontSize="xs">{job.location}</Text>
+                                </HStack>
+                                <HStack spacing={2}>
+                                  <FaBriefcase size={12} />
+                                  <Text fontSize="xs">{job.employment_type}</Text>
+                                </HStack>
+                                {job.salary && (
+                                  <HStack spacing={2}>
+                                    <FaMoneyBillWave size={12} />
+                                    <Text fontSize="xs">{job.salary}</Text>
+                                  </HStack>
+                                )}
+                              </VStack>
+
+                              {job.tags && (
+                                <Flex wrap="wrap" gap={1}>
+                                  {job.tags.split(',').slice(0, 3).map((tag, index) => (
+                                    <Badge
+                                      key={index}
+                                      colorScheme="blue"
+                                      variant="subtle"
+                                      fontSize="xs"
+                                      px={2}
+                                      py={1}
+                                      borderRadius="full"
+                                    >
+                                      {tag.trim()}
+                                    </Badge>
+                                  ))}
+                                  {job.tags.split(',').length > 3 && (
+                                    <Badge
+                                      colorScheme="gray"
+                                      variant="subtle"
+                                      fontSize="xs"
+                                      px={2}
+                                      py={1}
+                                      borderRadius="full"
+                                    >
+                                      +{job.tags.split(',').length - 3}
+                                    </Badge>
+                                  )}
+                                </Flex>
+                              )}
+                            </VStack>
+                          </CardBody>
+
+                          <CardFooter pt={0}>
                             <Button
-                              as={ChakraLink}
-                              href={opportunity.link}
-                              isExternal
-                              colorScheme="purple"
-                              size="sm"
-                              width="100%"
-                              isDisabled={deadlinePassed}
+                              onClick={() => navigate(`/jobs/${job.id}`)}
+                              colorScheme="blue"
+                              size={buttonSize}
+                              w="full"
+                              borderRadius="lg"
                             >
-                              Apply Now
+                              View Details
                             </Button>
-                            <Text fontSize="xs" color="gray.500">
-                              Saved on: {new Date(opportunity.saved_at).toLocaleDateString()}
+                          </CardFooter>
+                        </Card>
+                      ))}
+                    </SimpleGrid>
+                  )}
+                </TabPanel>
+
+                {/* Courses Tab */}
+                <TabPanel px={{ base: 2, md: 4 }}>
+                  {savedCourses.length === 0 ? (
+                    <Center py={12}>
+                      <VStack spacing={4}>
+                        <Text color={mutedColor} fontSize="lg">You haven't saved any courses yet.</Text>
+                        <Button size={buttonSize} onClick={() => navigate('/courses')}>
+                          Browse Courses
+                        </Button>
+                      </VStack>
+                    </Center>
+                  ) : (
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={{ base: 4, md: 6 }}>
+                      {savedCourses.map((course) => {
+                        const isNew = (Date.now() - new Date(course.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
+                        return (
+                          <Card
+                            key={course.id}
+                            bg={cardBg}
+                            borderRadius="xl"
+                            boxShadow="md"
+                            border="1px solid"
+                            borderColor={borderColor}
+                            overflow="hidden"
+                          >
+                            <CardHeader
+                              bgGradient="linear(to-r, blue.500, blue.300)"
+                              color="white"
+                              py={4}
+                              px={6}
+                            >
+                              <Flex justify="space-between" align="start">
+                                <Box flex="1">
+                                  <Heading size="sm" mb={2} noOfLines={2}>
+                                    {course.title}
+                                  </Heading>
+                                  <Text fontSize="xs" color="whiteAlpha.800">
+                                    {course.provider}
+                                  </Text>
+                                  {course.category && (
+                                    <Badge colorScheme="purple" mt={2} fontSize="xs">
+                                      {course.category}
+                                    </Badge>
+                                  )}
+                                </Box>
+                                <VStack align="end" spacing={2}>
+                                  {isNew && <Badge colorScheme="green" fontSize="xs">New</Badge>}
+                                  <IconButton
+                                    aria-label="Unsave course"
+                                    icon={<FaBookmark />}
+                                    colorScheme="blue"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleUnsaveCourse(course.id)}
+                                  />
+                                </VStack>
+                              </Flex>
+                            </CardHeader>
+
+                            <CardBody px={6} py={4}>
+                              <Text mb={4} color="gray.700" fontSize="sm" noOfLines={3}>
+                                {course.description}
+                              </Text>
+                              <ChakraLink 
+                                href={course.link} 
+                                isExternal 
+                                color="blue.500" 
+                                fontWeight="bold" 
+                                fontSize="sm"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                p={3}
+                                bg="blue.50"
+                                borderRadius="lg"
+                                _hover={{ bg: 'blue.100' }}
+                              >
+                                Go to Course <Icon as={FaExternalLinkAlt} ml={2} />
+                              </ChakraLink>
+                            </CardBody>
+                          </Card>
+                        );
+                      })}
+                    </SimpleGrid>
+                  )}
+                </TabPanel>
+
+                {/* Blogs Tab */}
+                <TabPanel px={{ base: 2, md: 4 }}>
+                  {savedBlogs.length === 0 ? (
+                    <Center py={12}>
+                      <VStack spacing={4}>
+                        <Text color={mutedColor} fontSize="lg">You haven't saved any blogs yet.</Text>
+                        <Button size={buttonSize} onClick={() => navigate('/blogs')}>
+                          Browse Blogs
+                        </Button>
+                      </VStack>
+                    </Center>
+                  ) : (
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={{ base: 4, md: 6 }}>
+                      {savedBlogs.map((blog) => (
+                        <Card
+                          key={blog.slug}
+                          bg={cardBg}
+                          borderRadius="xl"
+                          boxShadow="md"
+                          border="1px solid"
+                          borderColor={borderColor}
+                          overflow="hidden"
+                        >
+                          <CardHeader
+                            bgGradient="linear(to-r, green.500, green.300)"
+                            color="white"
+                            py={4}
+                            px={6}
+                          >
+                            <Flex justify="space-between" align="start">
+                              <Box flex="1">
+                                <Heading size="sm" mb={2} noOfLines={2}>
+                                  {blog.title}
+                                </Heading>
+                                {blog.cover_image_url && (
+                                  <Image
+                                    src={blog.cover_image_url}
+                                    alt={blog.title}
+                                    boxSize={{ base: '40px', md: '50px' }}
+                                    objectFit="cover"
+                                    borderRadius="md"
+                                    mt={2}
+                                  />
+                                )}
+                              </Box>
+                              <IconButton
+                                aria-label="Unsave blog"
+                                icon={<FaBookmark />}
+                                colorScheme="green"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleUnsaveBlog(blog.slug)}
+                              />
+                            </Flex>
+                          </CardHeader>
+
+                          <CardBody px={6} py={4}>
+                            <Text mb={4} color="gray.700" fontSize="sm" noOfLines={3}>
+                              {blog.excerpt}
                             </Text>
-                          </VStack>
-                        </CardFooter>
-                      </Card>
-                    );
-                  })}
-                </SimpleGrid>
-              )}
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-      </VStack>
-    </Container>
+                            <Button
+                              onClick={() => navigate(`/blogs/${blog.slug}`)}
+                              colorScheme="green"
+                              size={buttonSize}
+                              w="full"
+                              borderRadius="lg"
+                            >
+                              Read Blog
+                            </Button>
+                          </CardBody>
+                        </Card>
+                      ))}
+                    </SimpleGrid>
+                  )}
+                </TabPanel>
+
+                {/* Books Tab */}
+                <TabPanel px={{ base: 2, md: 4 }}>
+                  {savedBooks.length === 0 ? (
+                    <Center py={12}>
+                      <VStack spacing={4}>
+                        <Text color={mutedColor} fontSize="lg">You haven't saved any books yet.</Text>
+                        <Button size={buttonSize} onClick={() => navigate('/books')}>
+                          Browse Books
+                        </Button>
+                      </VStack>
+                    </Center>
+                  ) : (
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={{ base: 4, md: 6 }}>
+                      {savedBooks.map((book) => {
+                        const isNew = (Date.now() - new Date(book.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
+                        
+                        return (
+                          <Card
+                            key={book.id}
+                            bg={cardBg}
+                            borderRadius="xl"
+                            boxShadow="md"
+                            border="1px solid"
+                            borderColor={borderColor}
+                            overflow="hidden"
+                          >
+                            <CardHeader
+                              bgGradient="linear(to-r, blue.500, blue.300)"
+                              color="white"
+                              py={4}
+                              px={6}
+                            >
+                              <Flex justify="space-between" align="start">
+                                <Box flex="1">
+                                  <Heading size="sm" mb={2} noOfLines={2}>
+                                    {book.title}
+                                  </Heading>
+                                  {book.author && (
+                                    <Text fontSize="xs" color="whiteAlpha.800">
+                                      by {book.author}
+                                    </Text>
+                                  )}
+                                  {book.category && (
+                                    <Badge colorScheme="purple" mt={2} fontSize="xs">
+                                      {book.category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                    </Badge>
+                                  )}
+                                </Box>
+                                <VStack align="end" spacing={2}>
+                                  {isNew && <Badge colorScheme="green" fontSize="xs">New</Badge>}
+                                  <IconButton
+                                    aria-label="Unsave book"
+                                    icon={<FaBookmark />}
+                                    colorScheme="blue"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleUnsaveBook(book.id)}
+                                  />
+                                </VStack>
+                              </Flex>
+                            </CardHeader>
+
+                            <CardBody px={6} py={4}>
+                              {book.cover_image_url && (
+                                <Box mb={4} textAlign="center">
+                                  <Image
+                                    src={book.cover_image_url}
+                                    alt={book.title}
+                                    maxH="80px"
+                                    objectFit="contain"
+                                    borderRadius="md"
+                                    mx="auto"
+                                  />
+                                </Box>
+                              )}
+                              <Text mb={4} color="gray.700" fontSize="sm" noOfLines={3}>
+                                {book.description}
+                              </Text>
+                              <HStack spacing={2} fontSize="xs" color="gray.500" mb={3}>
+                                {book.pages && (
+                                  <Text>{book.pages} pages</Text>
+                                )}
+                                {book.language && (
+                                  <Text>{book.language}</Text>
+                                )}
+                                {book.format && (
+                                  <Badge colorScheme="purple" variant="subtle" fontSize="xs">
+                                    {book.format.toUpperCase()}
+                                  </Badge>
+                                )}
+                              </HStack>
+                              <ChakraLink 
+                                href={book.link} 
+                                isExternal 
+                                color="blue.500" 
+                                fontWeight="bold" 
+                                fontSize="sm"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                p={3}
+                                bg="blue.50"
+                                borderRadius="lg"
+                                _hover={{ bg: 'blue.100' }}
+                              >
+                                Download Book <Icon as={FaExternalLinkAlt} ml={2} />
+                              </ChakraLink>
+                            </CardBody>
+                          </Card>
+                        );
+                      })}
+                    </SimpleGrid>
+                  )}
+                </TabPanel>
+
+                {/* Opportunities Tab */}
+                <TabPanel px={{ base: 2, md: 4 }}>
+                  {savedOpportunities.length === 0 ? (
+                    <Center py={12}>
+                      <VStack spacing={4}>
+                        <Text color={mutedColor} fontSize="lg">You haven't saved any opportunities yet.</Text>
+                        <Button size={buttonSize} onClick={() => navigate('/opportunities')}>
+                          Browse Opportunities
+                        </Button>
+                      </VStack>
+                    </Center>
+                  ) : (
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={{ base: 4, md: 6 }}>
+                      {savedOpportunities.map((opportunity) => {
+                        const deadlineApproaching = opportunity.deadline && (new Date(opportunity.deadline) - new Date()) <= 30 * 24 * 60 * 60 * 1000 && (new Date(opportunity.deadline) - new Date()) >= 0;
+                        const deadlinePassed = opportunity.deadline && new Date(opportunity.deadline) < new Date();
+                        
+                        return (
+                          <Card
+                            key={opportunity.id}
+                            bg={cardBg}
+                            borderRadius="xl"
+                            boxShadow="md"
+                            border="1px solid"
+                            borderColor={borderColor}
+                            overflow="hidden"
+                          >
+                            <CardHeader
+                              bgGradient="linear(to-r, purple.500, purple.300)"
+                              color="white"
+                              py={4}
+                              px={6}
+                            >
+                              <Flex justify="space-between" align="start">
+                                <Box flex="1">
+                                  <Heading size="sm" mb={2} noOfLines={2}>
+                                    {opportunity.title}
+                                  </Heading>
+                                  {opportunity.organization && (
+                                    <Text fontSize="xs" color="whiteAlpha.800">
+                                      {opportunity.organization}
+                                    </Text>
+                                  )}
+                                </Box>
+                                <IconButton
+                                  aria-label="Unsave opportunity"
+                                  icon={<FaBookmark />}
+                                  colorScheme="purple"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleUnsaveOpportunity(opportunity.id)}
+                                />
+                              </Flex>
+                            </CardHeader>
+
+                            <CardBody px={6} py={4}>
+                              <VStack align="stretch" spacing={3}>
+                                {opportunity.category && (
+                                  <Badge colorScheme="purple" variant="subtle" fontSize="xs" alignSelf="start">
+                                    {opportunity.category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </Badge>
+                                )}
+                                {opportunity.location && (
+                                  <HStack spacing={2}>
+                                    <Icon as={FaMapMarkerAlt} color="gray.500" fontSize="xs" />
+                                    <Text fontSize="xs" color="gray.600">
+                                      {opportunity.location}
+                                    </Text>
+                                  </HStack>
+                                )}
+                                {opportunity.deadline && (
+                                  <HStack spacing={2}>
+                                    <Icon as={FaCalendarAlt} color="gray.500" fontSize="xs" />
+                                    <Text fontSize="xs" color={deadlinePassed ? 'red.500' : deadlineApproaching ? 'orange.500' : 'gray.600'}>
+                                      Deadline: {new Date(opportunity.deadline).toLocaleDateString()}
+                                    </Text>
+                                  </HStack>
+                                )}
+                                <Text color="gray.700" fontSize="sm" noOfLines={3}>
+                                  {opportunity.description}
+                                </Text>
+                              </VStack>
+                            </CardBody>
+
+                            <CardFooter pt={0}>
+                              <Button
+                                as={ChakraLink}
+                                href={opportunity.link}
+                                isExternal
+                                colorScheme="purple"
+                                size={buttonSize}
+                                w="full"
+                                borderRadius="lg"
+                                isDisabled={deadlinePassed}
+                              >
+                                Apply Now
+                              </Button>
+                            </CardFooter>
+                          </Card>
+                        );
+                      })}
+                    </SimpleGrid>
+                  )}
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          )}
+        </VStack>
+      </Container>
+    </Box>
   )
 }
 
