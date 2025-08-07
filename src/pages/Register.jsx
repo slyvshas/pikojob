@@ -12,48 +12,49 @@ import {
   Link,
   useToast,
   Container,
+  useColorModeValue,
+  Icon,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from '@chakra-ui/react'
+import { FaUserPlus, FaCheckCircle } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 
 const Register = () => {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { signUp } = useAuth()
+  const [isEmailSent, setIsEmailSent] = useState(false)
+  const { sendMagicLink } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
 
+  // Theme colors
+  const bgColor = useColorModeValue('gray.50', 'gray.900')
+  const cardBg = useColorModeValue('white', 'gray.800')
+  const borderColor = useColorModeValue('gray.200', 'gray.700')
+  const textColor = useColorModeValue('gray.800', 'white')
+  const mutedColor = useColorModeValue('gray.600', 'gray.400')
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    if (password !== confirmPassword) {
-      toast({
-        title: 'Error',
-        description: 'Passwords do not match',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-      return
-    }
-
     setIsLoading(true)
 
     try {
-      await signUp(email, password)
+      await sendMagicLink(email)
+      setIsEmailSent(true)
       toast({
-        title: 'Success',
-        description: 'Please check your email to confirm your account',
+        title: 'Magic Link Sent!',
+        description: 'Check your email for the registration link',
         status: 'success',
         duration: 5000,
         isClosable: true,
       })
-      navigate('/login')
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to create account',
+        description: error.message || 'Failed to send magic link',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -63,57 +64,132 @@ const Register = () => {
     }
   }
 
+  if (isEmailSent) {
+    return (
+      <Box bg={bgColor} minH="100vh" py={8}>
+        <Container maxW="md">
+          <Box
+            bg={cardBg}
+            p={8}
+            borderRadius="xl"
+            boxShadow="lg"
+            border="1px solid"
+            borderColor={borderColor}
+            textAlign="center"
+          >
+            <VStack spacing={6}>
+              <Icon as={FaCheckCircle} color="green.500" boxSize={12} />
+              <Heading size="lg" color={textColor}>
+                Check Your Email
+              </Heading>
+              <Alert status="success" borderRadius="lg">
+                <AlertIcon />
+                <Box>
+                  <AlertTitle>Magic Link Sent!</AlertTitle>
+                  <AlertDescription>
+                    We've sent a secure registration link to <strong>{email}</strong>
+                  </AlertDescription>
+                </Box>
+              </Alert>
+              <Text color={mutedColor} fontSize="sm">
+                Click the link in your email to create your account. The link will expire in 1 hour.
+              </Text>
+              <VStack spacing={3} w="full">
+                <Button
+                  onClick={() => setIsEmailSent(false)}
+                  variant="outline"
+                  w="full"
+                  size="lg"
+                >
+                  Try Different Email
+                </Button>
+                <Button
+                  onClick={() => navigate('/')}
+                  colorScheme="blue"
+                  w="full"
+                  size="lg"
+                >
+                  Back to Home
+                </Button>
+              </VStack>
+            </VStack>
+          </Box>
+        </Container>
+      </Box>
+    )
+  }
+
   return (
-    <Container maxW="md" py={10}>
-      <VStack spacing={8}>
-        <Heading>Create Account</Heading>
-        <Box w="100%" as="form" onSubmit={handleSubmit}>
-          <VStack spacing={4}>
-            <FormControl isRequired>
-              <FormLabel>Email</FormLabel>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-              />
-            </FormControl>
-            <FormControl isRequired>
-              <FormLabel>Password</FormLabel>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
-              />
-            </FormControl>
-            <FormControl isRequired>
-              <FormLabel>Confirm Password</FormLabel>
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your password"
-              />
-            </FormControl>
-            <Button
-              type="submit"
-              colorScheme="blue"
-              width="100%"
-              isLoading={isLoading}
-            >
-              Sign Up
-            </Button>
+    <Box bg={bgColor} minH="100vh" py={8}>
+      <Container maxW="md">
+        <Box
+          bg={cardBg}
+          p={8}
+          borderRadius="xl"
+          boxShadow="lg"
+          border="1px solid"
+          borderColor={borderColor}
+        >
+          <VStack spacing={8}>
+            <VStack spacing={4} textAlign="center">
+              <Icon as={FaUserPlus} color="blue.500" boxSize={10} />
+              <Heading size="lg" color={textColor}>
+                Create Account
+              </Heading>
+              <Text color={mutedColor}>
+                Enter your email to create a secure account
+              </Text>
+            </VStack>
+
+            <Box w="100%" as="form" onSubmit={handleSubmit}>
+              <VStack spacing={6}>
+                <FormControl isRequired>
+                  <FormLabel color={textColor}>Email Address</FormLabel>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email address"
+                    size="lg"
+                    borderRadius="lg"
+                    borderColor={borderColor}
+                    _focus={{
+                      borderColor: 'blue.500',
+                      boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)',
+                    }}
+                  />
+                </FormControl>
+
+                <Button
+                  type="submit"
+                  colorScheme="blue"
+                  width="100%"
+                  size="lg"
+                  isLoading={isLoading}
+                  loadingText="Sending Magic Link"
+                  borderRadius="lg"
+                >
+                  Create Account
+                </Button>
+              </VStack>
+            </Box>
+
+            <VStack spacing={4} w="full">
+              <Text color={mutedColor} fontSize="sm" textAlign="center">
+                No password required! We'll send you a secure link to create your account.
+              </Text>
+              
+              <Text fontSize="sm" color={mutedColor}>
+                Already have an account?{' '}
+                <Link as={RouterLink} to="/login" color="blue.500" fontWeight="medium">
+                  Sign in
+                </Link>
+              </Text>
+            </VStack>
           </VStack>
         </Box>
-        <Text>
-          Already have an account?{' '}
-          <Link as={RouterLink} to="/login" color="blue.500">
-            Sign in
-          </Link>
-        </Text>
-      </VStack>
-    </Container>
+      </Container>
+    </Box>
   )
 }
 

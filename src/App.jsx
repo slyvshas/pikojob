@@ -19,6 +19,7 @@ import Opportunities from './pages/Opportunities.jsx';
 import OpportunitiesDashboard from './pages/Admin/OpportunitiesDashboard.jsx';
 import FreeBooks from './pages/FreeBooks.jsx';
 import FreeBooksDashboard from './pages/Admin/FreeBooksDashboard.jsx';
+import AuthCallback from './pages/AuthCallback.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { theme } from './theme.js'
 import { supabase } from './lib/supabase.js'
@@ -68,14 +69,15 @@ function AppContent() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/jobs" element={<JobList />} />
             <Route path="/jobs/:id" element={<JobDetails />} />
-                                <Route path="/saved-items" element={<SavedItems />} />
-                    <Route path="/free-courses" element={<FreeCourses />} />
-                    <Route path="/free-books" element={<FreeBooks />} />
-                    <Route path="/opportunities" element={<Opportunities />} />
-                    <Route path="/blogs" element={<Blogs />} />
-                    <Route path="/blogs/:slug" element={<BlogDetail />} />
+            <Route path="/saved-items" element={<SavedItems />} />
+            <Route path="/free-courses" element={<FreeCourses />} />
+            <Route path="/free-books" element={<FreeBooks />} />
+            <Route path="/opportunities" element={<Opportunities />} />
+            <Route path="/blogs" element={<Blogs />} />
+            <Route path="/blogs/:slug" element={<BlogDetail />} />
             <Route 
               path="/create-job" 
               element={

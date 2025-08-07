@@ -53,13 +53,23 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
+  const sendMagicLink = async (email) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`
+      }
+    })
+    if (error) throw error
+  }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, sendMagicLink, signOut, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )
