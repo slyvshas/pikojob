@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pikojob.netlify.app/sitemap.xml
+Sitemap: https://growlytic.app/sitemap.xml
 
 # Disallow admin pages (optional - uncomment if you want to hide admin pages from search engines)
 # Disallow: /admin/
