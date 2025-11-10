@@ -20,6 +20,10 @@ import OpportunitiesDashboard from './pages/Admin/OpportunitiesDashboard.jsx';
 import FreeBooks from './pages/FreeBooks.jsx';
 import FreeBooksDashboard from './pages/Admin/FreeBooksDashboard.jsx';
 import AuthCallback from './pages/AuthCallback.jsx';
+import AboutUs from './pages/AboutUs.jsx';
+import Contact from './pages/Contact.jsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
+import ContactMessagesDashboard from './pages/Admin/ContactMessagesDashboard.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { theme } from './theme.js'
 import { supabase } from './lib/supabase.js'
@@ -79,6 +83,9 @@ function AppContent() {
             <Route path="/opportunities" element={<Opportunities />} />
             <Route path="/blogs" element={<Blogs />} />
             <Route path="/blogs/:slug" element={<BlogDetail />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route 
               path="/create-job" 
               element={
@@ -124,6 +131,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <FreeBooksDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/contact-messages" 
+              element={
+                <ProtectedRoute>
+                  <ContactMessagesDashboard />
                 </ProtectedRoute>
               } 
             />
