@@ -1,6 +1,9 @@
-/robots.txt    /robots.txt    200
-/ads.txt       https://srv.adstxtmanager.com/19390/growlytic.app    302
-/*             /index.html    200
+# Ezoic ads.txt redirect - must be before catch-all
+/ads.txt       https://srv.adstxtmanager.com/19390/growlytic.app    302!
 
+# Other redirects
+/robots.txt    /robots.txt    200
 /google7670d8ffd29e791e.html 200
-/* /index.html 200
+
+# SPA catch-all - must be last
+/*             /index.html    200
