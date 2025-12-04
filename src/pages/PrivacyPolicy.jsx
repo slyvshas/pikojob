@@ -213,6 +213,37 @@ const PrivacyPolicy = () => {
 
               <Divider />
 
+              <Section title="Ezoic Advertising Disclosure">
+                <Text color={textColor} lineHeight="tall">
+                  This website uses Ezoic to provide personalization and analytic services on this website. 
+                  By using this website, you consent to Ezoic's use of cookies and data for advertising and analytics. 
+                  For more information about how Ezoic and its partners use data, please visit:
+                </Text>
+                <Box
+                  mt={4}
+                  p={4}
+                  bg={useColorModeValue('blue.50', 'gray.700')}
+                  rounded="md"
+                >
+                  <Text color={textColor}>
+                    <a 
+                      href="http://g.ezoic.net/privacy/growlytic.app" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ color: '#3182ce', textDecoration: 'underline' }}
+                    >
+                      Ezoic Privacy Policy for Growlytic
+                    </a>
+                  </Text>
+                </Box>
+                {/* Ezoic Privacy Policy Embed */}
+                <Box mt={4}>
+                  <span id="ezoic-privacy-policy-embed"></span>
+                </Box>
+              </Section>
+
+              <Divider />
+
               <Section title="Contact Us">
                 <Text color={textColor} lineHeight="tall">
                   If you have any questions about this Privacy Policy, please contact us at:
