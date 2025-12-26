@@ -99,9 +99,6 @@ const Navbar = () => {
               <MenuItem as={RouterLink} to="/free-courses" icon={<FaBookOpen />}>
                 Free Courses
               </MenuItem>
-              <MenuItem as={RouterLink} to="/free-books" icon={<FaBook />}>
-                Free Books
-              </MenuItem>
               <MenuDivider />
               <MenuItem as={RouterLink} to="/about" icon={<FaInfoCircle />}>
                 About Us
@@ -205,9 +202,6 @@ const Navbar = () => {
                     <MenuDivider />
                     <MenuItem as={RouterLink} to="/admin/free-courses" icon={<FaBookOpen />}>
                       Free Courses
-                    </MenuItem>
-                    <MenuItem as={RouterLink} to="/admin/free-books" icon={<FaBook />}>
-                      Free Books
                     </MenuItem>
                     <MenuItem as={RouterLink} to="/admin/opportunities" icon={<FaMoneyBillWave />}>
                       Opportunities
@@ -376,24 +370,6 @@ const Navbar = () => {
           </ChakraLink>
            <ChakraLink 
              as={RouterLink} 
-             to="/free-books" 
-             onClick={() => setIsMenuOpen(false)}
-             _hover={{
-               color: 'purple.500',
-               transform: 'translateX(8px)',
-               bg: 'purple.50',
-               px: 3,
-               py: 1,
-               borderRadius: 'md'
-             }}
-             transition="all 0.3s ease"
-             py={2}
-             pl={6}
-           >
-             Free Books
-           </ChakraLink>
-           <ChakraLink 
-             as={RouterLink} 
              to="/about" 
              onClick={() => setIsMenuOpen(false)}
              _hover={{
@@ -508,9 +484,6 @@ const Navbar = () => {
                       <MenuDivider />
                       <MenuItem as={RouterLink} to="/admin/free-courses" icon={<FaBookOpen />} onClick={() => setIsMenuOpen(false)}>
                     Free Courses
-                      </MenuItem>
-                      <MenuItem as={RouterLink} to="/admin/free-books" icon={<FaBook />} onClick={() => setIsMenuOpen(false)}>
-                        Free Books
                       </MenuItem>
                       <MenuItem as={RouterLink} to="/admin/opportunities" icon={<FaMoneyBillWave />} onClick={() => setIsMenuOpen(false)}>
                         Opportunities

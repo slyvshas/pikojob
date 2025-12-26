@@ -17,8 +17,6 @@ import Blogs from './pages/Blogs.jsx';
 import BlogDetail from './pages/BlogDetail.jsx';
 import Opportunities from './pages/Opportunities.jsx';
 import OpportunitiesDashboard from './pages/Admin/OpportunitiesDashboard.jsx';
-import FreeBooks from './pages/FreeBooks.jsx';
-import FreeBooksDashboard from './pages/Admin/FreeBooksDashboard.jsx';
 import AuthCallback from './pages/AuthCallback.jsx';
 import AboutUs from './pages/AboutUs.jsx';
 import Contact from './pages/Contact.jsx';
@@ -79,7 +77,6 @@ function AppContent() {
             <Route path="/jobs/:id" element={<JobDetails />} />
             <Route path="/saved-items" element={<SavedItems />} />
             <Route path="/free-courses" element={<FreeCourses />} />
-            <Route path="/free-books" element={<FreeBooks />} />
             <Route path="/opportunities" element={<Opportunities />} />
             <Route path="/blogs" element={<Blogs />} />
             <Route path="/blogs/:slug" element={<BlogDetail />} />
@@ -123,14 +120,6 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <OpportunitiesDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/free-books" 
-              element={
-                <ProtectedRoute>
-                  <FreeBooksDashboard />
                 </ProtectedRoute>
               } 
             />
