@@ -285,7 +285,7 @@ const BlogDetail = () => {
 
                 {/* Meta Information */}
                 <VStack align="start" spacing={4} mb={8}>
-                  <HStack spacing={6} color={mutedColor} fontSize="md">
+                  <HStack spacing={6} color={mutedColor} fontSize="md" flexWrap="wrap">
                     <HStack spacing={2}>
                       <FaUser size={14} />
                       <Text fontWeight="500">
@@ -298,6 +298,14 @@ const BlogDetail = () => {
                         {formatDate(blog.published_at)}
                       </Text>
                     </HStack>
+                    {blog.category && (
+                      <HStack spacing={2}>
+                        <FaTag size={14} />
+                        <Text fontWeight="500">
+                          {blog.category}
+                        </Text>
+                      </HStack>
+                    )}
                   </HStack>
 
                   {/* Tags */}

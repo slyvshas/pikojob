@@ -298,7 +298,7 @@ Skills and professional development coverage to advance your career.
 
                         {/* Meta Information */}
                         <VStack align="start" spacing={3} mt="auto">
-                          <HStack spacing={4} color={mutedColor} fontSize="sm">
+                          <HStack spacing={4} color={mutedColor} fontSize="sm" flexWrap="wrap">
                             <HStack spacing={1}>
                               <FaUser size={12} />
                               <Text fontWeight="500">
@@ -311,6 +311,14 @@ Skills and professional development coverage to advance your career.
                                 {formatDate(blog.published_at)}
                               </Text>
                             </HStack>
+                            {blog.category && (
+                              <HStack spacing={1}>
+                                <FaTag size={12} />
+                                <Text fontWeight="500">
+                                  {blog.category}
+                                </Text>
+                              </HStack>
+                            )}
                           </HStack>
 
                           {/* Tags */}
