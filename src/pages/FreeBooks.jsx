@@ -28,21 +28,20 @@ import {
   Collapse,
   useDisclosure,
 } from '@chakra-ui/react';
-import { FaExternalLinkAlt, FaBookmark, FaRegBookmark, FaBook, FaUser, FaBuilding, FaFilter, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaBook, FaUser, FaBuilding, FaFilter, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
 
 const FreeBooks = () => {
   const [books, setBooks] = useState([]);
-  const [savedBooks, setSavedBooks] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { isAdmin, user } = useAuth();
   const [blogSlideUpOpen, setBlogSlideUpOpen] = useState(false);
   const [activeBlogSlug, setActiveBlogSlug] = useState(null);
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isOpen: isFilterOpen, onToggle: onFilterToggle } = useDisclosure({ defaultIsOpen: false });
+  const { isAdmin } = useAuth();
 
   // Theme colors
   const bgColor = useColorModeValue('gray.50', 'gray.900');
@@ -66,27 +65,7 @@ const FreeBooks = () => {
       setLoading(false);
     };
     fetchBooks();
-    
-    if (user) {
-      fetchSavedBooks();
-    }
-  }, [user]);
-
-  const fetchSavedBooks = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('saved_books')
-        .select('book_id')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      const savedBookIds = new Set(data.map(item => item.book_id));
-      setSavedBooks(savedBookIds);
-    } catch (error) {
-      console.error('Error fetching saved books:', error);
-    }
-  };
+  }, []);
 
   // Extract unique categories from books
   const categories = useMemo(() => {
@@ -121,75 +100,6 @@ const FreeBooks = () => {
 
   const clearAllFilters = () => {
     setSearchParams({});
-  };
-
-  const handleSaveBook = async (bookId) => {
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to save books',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    try {
-      if (savedBooks.has(bookId)) {
-        // Unsave book
-        const { error } = await supabase
-          .from('saved_books')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('book_id', bookId);
-
-        if (error) throw error;
-
-        setSavedBooks(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(bookId);
-          return newSet;
-        });
-
-        toast({
-          title: 'Book Unsaved',
-          description: 'Book has been removed from your saved books',
-          status: 'info',
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        // Save book
-        const { error } = await supabase
-          .from('saved_books')
-          .insert({
-            user_id: user.id,
-            book_id: bookId,
-          });
-
-        if (error) throw error;
-
-        setSavedBooks(prev => new Set([...prev, bookId]));
-
-        toast({
-          title: 'Book Saved',
-          description: 'Book has been added to your saved books',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    } catch (error) {
-      console.error('Error saving/unsaving book:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save/unsave book',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
   };
 
   // Format category for display
@@ -389,30 +299,6 @@ const FreeBooks = () => {
                       New
                     </Badge>
                   )}
-                </Box>
-
-                {/* Save Button */}
-                <Box
-                  position="absolute"
-                  top={2}
-                  left={2}
-                  zIndex={2}
-                >
-                  <IconButton
-                    aria-label={savedBooks.has(book.id) ? 'Unsave book' : 'Save book'}
-                    icon={savedBooks.has(book.id) ? <FaBookmark /> : <FaRegBookmark />}
-                    colorScheme={savedBooks.has(book.id) ? 'blue' : 'gray'}
-                    variant="ghost"
-                    size="xs"
-                    bg={cardBg}
-                    _hover={{ 
-                      bg: useColorModeValue('blue.50', 'blue.900'),
-                      transform: 'scale(1.1)',
-                      color: 'blue.500'
-                    }}
-                    transition="all 0.2s ease"
-                    onClick={() => handleSaveBook(book.id)}
-                  />
                 </Box>
 
                 {/* Cover Image - Left Side */}

@@ -31,23 +31,53 @@ import {
   useDisclosure,
   IconButton,
   useToast,
+  Select,
 } from '@chakra-ui/react';
-import { FaExternalLinkAlt, FaFilter, FaTimes, FaBookmark, FaRegBookmark, FaBook } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaFilter, FaTimes, FaBook, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
+import { keyframes } from '@emotion/react';
+
+// Logo slider animation
+const scroll = keyframes`
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+`;
+
+// University and platform logos data
+const partnerLogos = [
+  // Ivy League Universities
+  { name: 'Harvard University', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/Harvard_University_coat_of_arms.svg' },
+  { name: 'Yale University', logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6e/Yale_University_logo.svg' },
+  { name: 'Princeton University', logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Princeton_seal.svg' },
+  { name: 'Columbia University', logo: 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Columbia_coat_of_arms_no_crest.png' },
+  { name: 'MIT', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0c/MIT_logo.svg' },
+  { name: 'Stanford University', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/Seal_of_Leland_Stanford_Junior_University.svg' },
+  // Course Platforms
+  { name: 'Coursera', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/97/Coursera-Logo_600x600.svg' },
+  { name: 'edX', logo: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/EdX.svg' },
+  { name: 'Udemy', logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Udemy_logo.svg' },
+  { name: 'Khan Academy', logo: 'https://cdn.worldvectorlogo.com/logos/khan-academy-4.svg' },
+  { name: 'LinkedIn Learning', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png' },
+  { name: 'Google', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg' },
+];
 
 const FreeCourses = () => {
   const [courses, setCourses] = useState([]);
-  const [savedCourses, setSavedCourses] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const { isOpen, onToggle } = useDisclosure();
   const cardBg = useColorModeValue('white', 'gray.800');
-  const { isAdmin, user } = useAuth();
   const [blogSlideUpOpen, setBlogSlideUpOpen] = useState(false);
   const [activeBlogSlug, setActiveBlogSlug] = useState(null);
   const toast = useToast();
+  const { isAdmin } = useAuth();
+
+  // Pagination state
+  const ITEMS_PER_PAGE_OPTIONS = [9, 18, 27, 36];
+  const [itemsPerPage, setItemsPerPage] = useState(9);
+  const currentPage = parseInt(searchParams.get('page')) || 1;
 
   // Get filter values from URL
   const selectedCategories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
@@ -72,96 +102,9 @@ const FreeCourses = () => {
       setLoading(false);
     };
     fetchCourses();
-    
-    if (user) {
-      fetchSavedCourses();
-    }
-  }, [user]);
+  }, []);
 
-  const fetchSavedCourses = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('saved_courses')
-        .select('course_id')
-        .eq('user_id', user.id);
 
-      if (error) throw error;
-
-      const savedCourseIds = new Set(data.map(item => item.course_id));
-      setSavedCourses(savedCourseIds);
-    } catch (error) {
-      console.error('Error fetching saved courses:', error);
-    }
-  };
-
-  const handleSaveCourse = async (courseId) => {
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to save courses',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    try {
-      if (savedCourses.has(courseId)) {
-        // Unsave course
-        const { error } = await supabase
-          .from('saved_courses')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('course_id', courseId);
-
-        if (error) throw error;
-
-        setSavedCourses(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(courseId);
-          return newSet;
-        });
-
-        toast({
-          title: 'Course Unsaved',
-          description: 'Course has been removed from your saved courses',
-          status: 'info',
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        // Save course
-        const { error } = await supabase
-          .from('saved_courses')
-          .insert({
-            user_id: user.id,
-            course_id: courseId,
-          });
-
-        if (error) throw error;
-
-        setSavedCourses(prev => new Set([...prev, courseId]));
-
-        toast({
-          title: 'Course Saved',
-          description: 'Course has been added to your saved courses',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    } catch (error) {
-      console.error('Error saving/unsaving course:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save/unsave course',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
 
   // Filter courses based on selected filters
   const filteredCourses = useMemo(() => {
@@ -171,6 +114,21 @@ const FreeCourses = () => {
       return categoryMatch && providerMatch;
     });
   }, [courses, selectedCategories, selectedProviders]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCourses = filteredCourses.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('page', '1');
+      setSearchParams(newParams);
+    }
+  }, [filteredCourses.length, itemsPerPage, currentPage, totalPages, searchParams, setSearchParams]);
 
   // Update URL when filters change
   const updateFilters = (type, values) => {
@@ -182,6 +140,24 @@ const FreeCourses = () => {
       newParams.set(type, values.join(','));
     }
     
+    // Reset to page 1 when filters change
+    newParams.set('page', '1');
+    
+    setSearchParams(newParams);
+  };
+
+  const handlePageChange = (newPage) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', newPage.toString());
+    setSearchParams(newParams);
+    // Scroll to top of page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value));
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', '1');
     setSearchParams(newParams);
   };
 
@@ -194,12 +170,110 @@ const FreeCourses = () => {
   };
 
   const clearAllFilters = () => {
-    setSearchParams({});
+    const newParams = new URLSearchParams();
+    newParams.set('page', '1');
+    setSearchParams(newParams);
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
   };
 
   return (
     <Box maxW="1200px" mx="auto" py={10} px={4}>
-      <Heading mb={8} textAlign="center" color="blue.600">Free Courses</Heading>
+      
+      {/* Trusted Partners Text */}
+      <Text textAlign="center" color="gray.500" fontSize="sm" mb={4}>
+        Courses from world-class universities and platforms
+      </Text>
+
+      {/* Logo Slider */}
+      <Box 
+        mb={10} 
+        overflow="hidden" 
+        position="relative"
+        py={4}
+        _before={{
+          content: '""',
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: '80px',
+          background: 'linear-gradient(to right, white, transparent)',
+          zIndex: 2,
+        }}
+        _after={{
+          content: '""',
+          position: 'absolute',
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: '80px',
+          background: 'linear-gradient(to left, white, transparent)',
+          zIndex: 2,
+        }}
+      >
+        <Flex
+          animation={`${scroll} 30s linear infinite`}
+          width="fit-content"
+          _hover={{ animationPlayState: 'paused' }}
+        >
+          {/* Double the logos for seamless infinite scroll */}
+          {[...partnerLogos, ...partnerLogos].map((partner, index) => (
+            <Box
+              key={`${partner.name}-${index}`}
+              mx={6}
+              minW="100px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              opacity={0.7}
+              transition="all 0.3s"
+              _hover={{ opacity: 1, transform: 'scale(1.1)' }}
+              title={partner.name}
+            >
+              <Box
+                as="img"
+                src={partner.logo}
+                alt={partner.name}
+                maxH="45px"
+                maxW="100px"
+                objectFit="contain"
+                filter="grayscale(100%)"
+                _hover={{ filter: 'grayscale(0%)' }}
+                transition="filter 0.3s"
+              />
+            </Box>
+          ))}
+        </Flex>
+      </Box>
       
       {/* Filter Section */}
       <Box mb={8} bg={cardBg} borderRadius="lg" boxShadow="md" p={4}>
@@ -296,9 +370,24 @@ const FreeCourses = () => {
 
       {/* Results Summary */}
       <Flex justify="space-between" align="center" mb={6} flexWrap="wrap" gap={2}>
-  <Text color="gray.600" mb={2}>
-    Showing {filteredCourses.length} of {courses.length} courses
-  </Text>
+  <HStack spacing={4} flexWrap="wrap">
+    <Text color="gray.600">
+      Showing {filteredCourses.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredCourses.length)} of {filteredCourses.length} courses
+    </Text>
+    <HStack>
+      <Text fontSize="sm" color="gray.500">Per page:</Text>
+      <Select 
+        size="sm" 
+        w="70px" 
+        value={itemsPerPage} 
+        onChange={handleItemsPerPageChange}
+      >
+        {ITEMS_PER_PAGE_OPTIONS.map(opt => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </Select>
+    </HStack>
+  </HStack>
   {(selectedCategories.length > 0 || selectedProviders.length > 0) && (
     <Wrap spacing={2} minWidth={0}>
       {selectedCategories.map((category) => (
@@ -335,8 +424,9 @@ const FreeCourses = () => {
           )}
         </Box>
       ) : (
+        <>
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-          {filteredCourses.map((course) => {
+          {paginatedCourses.map((course) => {
             const isNew = (Date.now() - new Date(course.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
             return (
               <Card
@@ -379,27 +469,8 @@ const FreeCourses = () => {
                    )}
                  </Box>
 
-                 {/* Save Button */}
-                 <Box
-                   position="absolute"
-                   top={3}
-                   left={3}
-                   zIndex={2}
-                 >
-                   <IconButton
-                     aria-label={savedCourses.has(course.id) ? 'Unsave course' : 'Save course'}
-                     icon={savedCourses.has(course.id) ? <FaBookmark /> : <FaRegBookmark />}
-                     colorScheme={savedCourses.has(course.id) ? 'blue' : 'gray'}
-                     variant="ghost"
-                     size="sm"
-                     bg="white"
-                     _hover={{ bg: 'gray.50' }}
-                     onClick={() => handleSaveCourse(course.id)}
-                   />
-                 </Box>
-
                  {/* Course Content */}
-                 <Box p={6} pt={12}>
+                 <Box p={6} pt={12} display="flex" flexDirection="column" height="100%">
                    {/* Category Badge */}
                     {course.category && (
                      <Badge 
@@ -443,6 +514,7 @@ const FreeCourses = () => {
                     lineHeight="1.5"
                     mb={4}
                     noOfLines={3}
+                    flex="1"
                   >
                     {course.description}
                   </Text>
@@ -455,7 +527,7 @@ const FreeCourses = () => {
                   )}
 
                                                         {/* Buttons Row */}
-                   <HStack spacing={2} mt={4}>
+                   <HStack spacing={2} mt="auto">
                                            {/* Blog Info Button - Prioritized */}
                       {course.blog_slug && (
                         <Button
@@ -486,17 +558,17 @@ const FreeCourses = () => {
                         flex={1}
                       >
                         <Button
-                          colorScheme="gray"
-                          variant="outline"
+                          colorScheme="blue"
+                          variant="solid"
                           size="sm"
                           width="100%"
                           rightIcon={<FaExternalLinkAlt />}
                           _hover={{ 
-                            bg: 'gray.50',
-                            borderColor: 'gray.300'
+                            transform: 'translateY(-2px)',
+                            boxShadow: 'md'
                           }}
                         >
-                          Access Only
+                          Enroll Now
                         </Button>
                   </ChakraLink>
                    </HStack>
@@ -505,6 +577,59 @@ const FreeCourses = () => {
             );
           })}
         </SimpleGrid>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Flex 
+            justify="center" 
+            align="center" 
+            mt={10} 
+            flexWrap="wrap" 
+            gap={2}
+          >
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<FaChevronLeft />}
+              onClick={() => handlePageChange(currentPage - 1)}
+              isDisabled={currentPage === 1}
+              colorScheme="blue"
+            >
+              Previous
+            </Button>
+            
+            <HStack spacing={1}>
+              {getPageNumbers().map((page, index) => (
+                page === '...' ? (
+                  <Text key={`ellipsis-${index}`} px={2} color="gray.500">...</Text>
+                ) : (
+                  <Button
+                    key={page}
+                    size="sm"
+                    variant={currentPage === page ? 'solid' : 'outline'}
+                    colorScheme="blue"
+                    onClick={() => handlePageChange(page)}
+                    minW="40px"
+                  >
+                    {page}
+                  </Button>
+                )
+              ))}
+            </HStack>
+            
+            <Button
+              size="sm"
+              variant="outline"
+              rightIcon={<FaChevronRight />}
+              onClick={() => handlePageChange(currentPage + 1)}
+              isDisabled={currentPage === totalPages}
+              colorScheme="blue"
+            >
+              Next
+            </Button>
+          </Flex>
+        )}
+        </>
       )}
       <BlogSlideUp open={blogSlideUpOpen} slug={activeBlogSlug} onClose={() => setBlogSlideUpOpen(false)} />
     </Box>

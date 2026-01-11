@@ -13,235 +13,536 @@ import {
   Badge,
   Image,
   Flex,
-  IconButton,
+  Icon,
+  Skeleton,
+  SkeletonText,
+  Stack,
 } from '@chakra-ui/react'
-import { FaMapMarkerAlt, FaBriefcase, FaMoneyBillWave, FaBookmark, FaRegBookmark, FaStar } from 'react-icons/fa'
+import { motion } from 'framer-motion'
+import { FaGraduationCap, FaNewspaper, FaLightbulb, FaStar, FaArrowRight, FaBookOpen, FaRocket, FaSearch } from 'react-icons/fa'
 import { supabase } from '../lib/supabase'
-import { useAuth } from '../context/AuthContext'
+import { generateCoverForBlog } from '../utils/generateBlogCover'
+
+const MotionBox = motion(Box)
+const MotionHeading = motion(Heading)
+const MotionText = motion(Text)
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+}
 
 const Home = () => {
-  const [featuredJobs, setFeaturedJobs] = useState([])
-  const [savedJobs, setSavedJobs] = useState(new Set())
+  const [featuredBlogs, setFeaturedBlogs] = useState([])
+  const [featuredCourses, setFeaturedCourses] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  
   const cardBg = useColorModeValue('white', 'gray.800')
-  const { user } = useAuth()
+  const borderColor = useColorModeValue('gray.100', 'gray.700')
+  const mutedColor = useColorModeValue('gray.600', 'gray.400')
+  const heroBg = useColorModeValue(
+    'radial-gradient(circle at top right, rgba(66, 153, 225, 0.1), transparent 40%), radial-gradient(circle at bottom left, rgba(128, 90, 213, 0.1), transparent 40%)',
+    'radial-gradient(circle at top right, rgba(66, 153, 225, 0.1), transparent 40%), radial-gradient(circle at bottom left, rgba(128, 90, 213, 0.1), transparent 40%)'
+  )
+  const heroGradientText = useColorModeValue(
+    'linear(to-r, blue.600, purple.600)',
+    'linear(to-r, blue.200, purple.200)'
+  )
 
   useEffect(() => {
-    fetchFeaturedJobs()
-    if (user) {
-      fetchSavedJobs()
-    }
-  }, [user])
+    fetchFeaturedContent()
+  }, [])
 
-  const fetchFeaturedJobs = async () => {
+  const fetchFeaturedContent = async () => {
     try {
-      const { data, error } = await supabase
-        .from('job_postings')
-        .select('*')
-        .eq('is_featured', true)
-        .order('created_at', { ascending: false })
-        .limit(6)
+      const [blogsRes, coursesRes] = await Promise.all([
+        supabase
+          .from('blog_posts')
+          .select('id, slug, title, excerpt, cover_image_url, category, created_at')
+          .order('created_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('free_courses')
+          .select('id, title, provider, course_url, category')
+          .order('created_at', { ascending: false })
+          .limit(4)
+      ])
 
-      if (error) throw error
-      setFeaturedJobs(data || [])
+      console.log('Blogs data:', blogsRes.data)
+      console.log('Courses data:', coursesRes.data)
+
+      if (blogsRes.data) setFeaturedBlogs(blogsRes.data)
+      if (coursesRes.data) setFeaturedCourses(coursesRes.data)
     } catch (error) {
-      console.error('Error fetching featured jobs:', error)
+      console.error('Error fetching featured content:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchSavedJobs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('saved_jobs')
-        .select('job_id')
-        .eq('user_id', user.id)
+  // Blog card with auto-generated cover support
+  const BlogCard = ({ blog }) => {
+    const [generatedCover, setGeneratedCover] = useState(null)
+    const [coverLoading, setCoverLoading] = useState(!blog.image_url && !blog.cover_image_url)
 
-      if (error) throw error
-
-      const savedJobIds = new Set(data.map(item => item.job_id))
-      setSavedJobs(savedJobIds)
-    } catch (error) {
-      console.error('Error fetching saved jobs:', error)
-    }
-  }
-
-  const handleSaveJob = async (jobId) => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
-
-    try {
-      if (savedJobs.has(jobId)) {
-        // Unsave job
-        const { error } = await supabase
-          .from('saved_jobs')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('job_id', jobId)
-
-        if (error) throw error
-
-        setSavedJobs(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(jobId)
-          return newSet
-        })
-      } else {
-        // Save job
-        const { error } = await supabase
-          .from('saved_jobs')
-          .insert([{ user_id: user.id, job_id: jobId }])
-
-        if (error) throw error
-
-        setSavedJobs(prev => new Set([...prev, jobId]))
+    useEffect(() => {
+      if (!blog.image_url && !blog.cover_image_url) {
+        generateCoverForBlog(blog.title, blog.category)
+          .then(dataUrl => {
+            setGeneratedCover(dataUrl)
+            setCoverLoading(false)
+          })
+          .catch(() => setCoverLoading(false))
       }
-    } catch (error) {
-      console.error('Error saving/unsaving job:', error)
-    }
+    }, [blog.title, blog.category, blog.image_url, blog.cover_image_url])
+
+    const coverImage = blog.image_url || blog.cover_image_url || generatedCover
+
+    return (
+      <MotionBox
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -8, transition: { duration: 0.2 } }}
+        bg={cardBg}
+        borderRadius="2xl"
+        boxShadow="lg"
+        overflow="hidden"
+        cursor="pointer"
+        onClick={() => navigate(`/blogs/${blog.slug}`)}
+        h="full"
+        display="flex"
+        flexDirection="column"
+        role="group"
+      >
+        <Box 
+          position="relative" 
+          paddingBottom="56.25%"
+          bg={useColorModeValue('gray.100', 'gray.800')}
+          overflow="hidden"
+        >
+          {coverLoading ? (
+            <Skeleton position="absolute" top={0} left={0} width="100%" height="100%" />
+          ) : (
+            <Image
+              src={coverImage}
+              alt={blog.title}
+              position="absolute"
+              top={0}
+              left={0}
+              width="100%"
+              height="100%"
+              objectFit="cover"
+              transition="transform 0.4s ease"
+              _groupHover={{ transform: 'scale(1.05)' }}
+              loading="lazy"
+            />
+          )}
+          <Box 
+            position="absolute" 
+            top={0} 
+            left={0} 
+            right={0} 
+            bottom={0} 
+            bg="blackAlpha.200" 
+            opacity={0} 
+            _groupHover={{ opacity: 1 }} 
+            transition="opacity 0.2s" 
+          />
+        </Box>
+        <Stack p={6} spacing={3} flex="1">
+          <Badge alignSelf="start" colorScheme="purple" variant="subtle" borderRadius="full" px={3} textTransform="none">
+            {blog.category || 'Article'}
+          </Badge>
+          <Heading size="md" lineHeight="tall" noOfLines={2} _groupHover={{ color: 'blue.500' }}>
+            {blog.title}
+          </Heading>
+          <Text fontSize="sm" color={mutedColor} noOfLines={3} flex="1">
+            {blog.excerpt}
+          </Text>
+          <HStack pt={2} justify="space-between" color={mutedColor} fontSize="sm">
+             <Text>{new Date(blog.created_at).toLocaleDateString()}</Text>
+             <Text color="blue.500" fontWeight="bold" display="flex" alignItems="center">
+               Read more <Icon as={FaArrowRight} ml={1} w={3} h={3}/>
+             </Text>
+          </HStack>
+        </Stack>
+      </MotionBox>
+    )
   }
 
-  const JobCard = ({ job }) => (
-    <Box
+  const CourseCard = ({ course }) => (
+    <MotionBox
+      whileHover={{ y: -5, boxShadow: 'xl' }}
       p={6}
       bg={cardBg}
       borderRadius="2xl"
       boxShadow="md"
-      _hover={{ transform: 'translateY(-4px)', transition: 'all 0.2s', boxShadow: 'xl' }}
-      borderWidth="1px"
-      borderColor={useColorModeValue('gray.200', 'gray.700')}
-      display="flex"
-      flexDirection="column"
-      justifyContent="space-between"
+      borderTop="4px solid"
+      borderColor={useColorModeValue('blue.400', 'blue.200')}
+      position="relative"
     >
-      <VStack align="start" spacing={4}>
-        <Flex justify="space-between" width="100%" align="center">
-          {job.company_logo_url && (
-            <Image
-              src={job.company_logo_url}
-              alt={`${job.company_name} logo`}
-              boxSize="60px"
-              objectFit="contain"
-              borderRadius="md"
-            />
-          )}
-          <IconButton
-            aria-label={savedJobs.has(job.id) ? 'Unsave job' : 'Save job'}
-            icon={savedJobs.has(job.id) ? <FaBookmark /> : <FaRegBookmark />}
-            colorScheme={savedJobs.has(job.id) ? 'blue' : 'gray'}
-            variant="ghost"
-            onClick={() => handleSaveJob(job.id)}
-          />
-        </Flex>
-
-        <Box>
-          <Heading size="md" mb={1}>
-            {job.title}
-          </Heading>
-          <Text fontWeight="medium" color="gray.600">
-            {job.company_name}
-          </Text>
+      <Flex justify="space-between" align="start" mb={4}>
+        <Box
+          p={3}
+          bg="blue.50"
+          borderRadius="xl"
+          color="blue.500"
+          _dark={{ bg: 'blue.900', color: 'blue.200' }}
+        >
+          <Icon as={FaGraduationCap} boxSize={6} />
         </Box>
-
-        <VStack align="start" spacing={1} fontSize="sm" color="gray.500">
-          <HStack>
-            <FaMapMarkerAlt />
-            <Text>{job.location}</Text>
-          </HStack>
-          <HStack>
-            <FaBriefcase />
-            <Text>{job.employment_type}</Text>
-          </HStack>
-          <HStack>
-            <FaMoneyBillWave />
-            <Text>{job.salary}</Text>
-          </HStack>
-        </VStack>
-
-        {job.tags && (
-          <Flex wrap="wrap" gap={2} mt={2}>
-            {job.tags.split(',').map((tag, index) => (
-              <Badge
-                key={index}
-                colorScheme="blue"
-                variant="solid"
-                borderRadius="full"
-                px={2}
-                py={1}
-                fontSize="xs"
-              >
-                {tag.trim()}
-              </Badge>
-            ))}
-          </Flex>
+        {course.category && (
+          <Badge colorScheme="blue" borderRadius="full" px={2}>
+            {course.category}
+          </Badge>
         )}
-      </VStack>
-
+      </Flex>
+      <Heading size="md" mb={2} noOfLines={2}>
+        {course.title}
+      </Heading>
+      <Text fontSize="sm" color={mutedColor} mb={4}>
+        by {course.provider}
+      </Text>
       <Button
-        onClick={() => navigate(`/jobs/${job.id}`)}
-        colorScheme="blue"
         size="md"
-        mt={6}
-        width="100%"
-        borderRadius="lg"
+        colorScheme="blue"
+        variant="ghost"
+        width="full"
+        rightIcon={<FaArrowRight />}
+        onClick={() => window.open(course.course_url, '_blank')}
       >
-        View Internship
+        Start Learning
       </Button>
-    </Box>
+    </MotionBox>
   )
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <Box>
-        <VStack spacing={6} align="center">
-          <Heading as="h1" size="2xl" textAlign="center">
-            Find Your Dream Career
-          </Heading>
-          <Text fontSize="xl" color="gray.600" textAlign="center">
-            Discover the best Internships and free learning resources to boost your career.
-          </Text>
-          <VStack spacing={4} align="center" justify="center" width="100%">
-            <HStack spacing={4} justify="center">
-              <Button colorScheme="blue" size="lg" onClick={() => navigate('/jobs')}>
-                Browse Internships
-              </Button>
-              <Button colorScheme="blue" size="lg" onClick={() => navigate('/free-courses')}>
-                Free Courses
-              </Button>
-            </HStack>
-          </VStack>
-        </VStack>
-      </Box>
-
-      {/* Featured Jobs Section */}
-      <Box>
-        <HStack justify="space-between" mb={6}>
-          <Heading size="lg">
-            <HStack>
-              <FaStar color="gold" />
-              <Text>Featured Internships</Text>
-            </HStack>
-          </Heading>
-          <Button
-            variant="ghost"
-            colorScheme="blue"
-            onClick={() => navigate('/jobs')}
+    <Box overflowX="hidden">
+      {/* Hero Section */}
+      <Box 
+        bg={heroBg} 
+        position="relative" 
+        pt={{ base: 20, md: 32 }} 
+        pb={{ base: 24, md: 40 }}
+      >
+        <Container maxW="container.xl" position="relative" zIndex={1}>
+          <MotionBox
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            textAlign="center"
+            maxW="4xl"
+            mx="auto"
           >
-            View All
-          </Button>
-        </HStack>
-
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-          {featuredJobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </SimpleGrid>
+            <Badge 
+              colorScheme="blue" 
+              variant="solid" 
+              px={4} 
+              py={1.5} 
+              borderRadius="full" 
+              fontSize="sm" 
+              mb={6}
+              boxShadow="lg"
+            >
+              🚀 Launch Your Career Today
+            </Badge>
+            <Heading
+              as="h1"
+              size={{ base: '2xl', md: '3xl', lg: '4xl' }}
+              fontWeight="extrabold"
+              lineHeight="1.2"
+              mb={6}
+              letterSpacing="tight"
+            >
+              Unlock Your Potential with <br />
+              <Text as="span" bgGradient={heroGradientText} bgClip="text">
+                Premium Free Resources
+              </Text>
+            </Heading>
+            <Text 
+              fontSize={{ base: 'lg', md: 'xl' }} 
+              color={mutedColor} 
+              maxW="2xl" 
+              mx="auto" 
+              mb={10}
+              lineHeight="tall"
+            >
+              Discover curated courses and insightful blogs to boost your career. No paywalls, just growth.
+            </Text>
+            <Stack 
+              direction={{ base: 'column', sm: 'row' }} 
+              spacing={4} 
+              justify="center"
+            >
+              <Button
+                size="lg"
+                colorScheme="blue"
+                px={8}
+                height="3.5rem"
+                fontSize="md"
+                rightIcon={<FaArrowRight />}
+                onClick={() => navigate('/free-courses')}
+                _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
+              >
+                Start Learning
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                colorScheme="gray"
+                px={8}
+                height="3.5rem"
+                fontSize="md"
+                leftIcon={<FaNewspaper />}
+                onClick={() => navigate('/blogs')}
+                bg={cardBg}
+                _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
+              >
+                Read Articles
+              </Button>
+            </Stack>
+          </MotionBox>
+        </Container>
       </Box>
-    </Container>
+
+      <Container maxW="container.xl" py={12} mt={-20} position="relative" zIndex={2}>
+        {/* Quick Stats / Pathways - Floating Cards */}
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={24}>
+          <MotionBox
+            whileHover={{ y: -4, boxShadow: 'lg' }}
+            p={6}
+            bg={cardBg}
+            borderRadius="xl"
+            boxShadow="sm"
+            cursor="pointer"
+            onClick={() => navigate('/free-courses')}
+            border="1px solid"
+            borderColor={borderColor}
+            transition="all 0.3s"
+          >
+            <HStack spacing={4} mb={3}>
+               <Box p={2.5} bg="blue.50" borderRadius="lg" color="blue.500" _dark={{ bg: 'blue.900' }}>
+                 <Icon as={FaBookOpen} boxSize={5} />
+               </Box>
+               <Heading size="md">Free Courses</Heading>
+            </HStack>
+            <Text color={mutedColor} fontSize="sm">
+              Access thousands of free courses from top platforms and universities.
+            </Text>
+          </MotionBox>
+           <MotionBox
+            whileHover={{ y: -4, boxShadow: 'lg' }}
+            p={6}
+            bg={cardBg}
+            borderRadius="xl"
+            boxShadow="sm"
+            cursor="pointer"
+            onClick={() => navigate('/blogs')}
+            border="1px solid"
+            borderColor={borderColor}
+            transition="all 0.3s"
+          >
+             <HStack spacing={4} mb={3}>
+               <Box p={2.5} bg="purple.50" borderRadius="lg" color="purple.500" _dark={{ bg: 'purple.900' }}>
+                 <Icon as={FaNewspaper} boxSize={5} />
+               </Box>
+               <Heading size="md">Career Blog</Heading>
+            </HStack>
+            <Text color={mutedColor} fontSize="sm">
+               Stay updated with the latest insights, guides, and career advice.
+            </Text>
+          </MotionBox>
+        </SimpleGrid>
+
+        {/* Featured Blogs Section */}
+        <Box mb={24}>
+          <Flex 
+            justify="space-between" 
+            align={{ base: 'flex-start', md: 'center' }} 
+            mb={10}
+            direction={{ base: 'column', md: 'row' }}
+            gap={{ base: 4, md: 0 }}
+          >
+             <Box>
+                <Heading size="lg" mb={2}>Latest Insights</Heading>
+                <Text color={mutedColor}>Read our latest articles and guides</Text>
+             </Box>
+             <Button
+              variant="link"
+              colorScheme="blue"
+              rightIcon={<FaArrowRight />}
+              onClick={() => navigate('/blogs')}
+              fontSize={{ base: 'sm', md: 'md' }}
+              flexShrink={0}
+            >
+              View All Articles
+            </Button>
+          </Flex>
+
+          {loading ? (
+             <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
+              {[1, 2, 3].map((i) => (
+                <Box key={i} p={4} bg={cardBg} borderRadius="xl" boxShadow="sm">
+                  <Skeleton height="200px" borderRadius="lg" mb={4} />
+                  <SkeletonText noOfLines={3} />
+                </Box>
+              ))}
+            </SimpleGrid>
+          ) : (
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={10}>
+              {featuredBlogs.map((blog) => (
+                <BlogCard key={blog.id} blog={blog} />
+              ))}
+            </SimpleGrid>
+          )}
+        </Box>
+
+        {/* Featured Courses Section */}
+        <Box mb={24} position="relative">
+          <Box 
+            position="absolute" 
+            top="-20px" 
+            left="-20px" 
+            width="100px" 
+            height="100px" 
+            bg="blue.100" 
+            borderRadius="full" 
+            filter="blur(40px)" 
+            opacity={0.5} 
+            zIndex={-1} 
+          />
+          <Flex 
+            justify="space-between" 
+            align={{ base: 'flex-start', md: 'center' }} 
+            mb={10}
+            direction={{ base: 'column', md: 'row' }}
+            gap={{ base: 4, md: 0 }}
+          >
+            <Box>
+                <Heading size="lg" mb={2}>Popular Free Courses</Heading>
+                <Text color={mutedColor}>Top rated courses you can start today</Text>
+             </Box>
+            <Button
+              variant="link"
+              colorScheme="blue"
+              rightIcon={<FaArrowRight />}
+              onClick={() => navigate('/free-courses')}
+              fontSize={{ base: 'sm', md: 'md' }}
+              flexShrink={0}
+            >
+              Browse Library
+            </Button>
+          </Flex>
+
+          {loading ? (
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={6}>
+              {[1, 2, 3, 4].map((i) => (
+                <Box key={i} p={5} bg={cardBg} borderRadius="xl">
+                  <Skeleton height="40px" width="40px" borderRadius="lg" mb={4} />
+                  <SkeletonText noOfLines={3} />
+                </Box>
+              ))}
+            </SimpleGrid>
+          ) : (
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={6}>
+              {featuredCourses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </SimpleGrid>
+          )}
+        </Box>
+
+        {/* Newsletter Section */}
+        <Box mb={24}>
+          <MotionBox
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            bg="linear-gradient(135deg, rgba(66, 153, 225, 0.1) 0%, rgba(128, 90, 213, 0.1) 100%)"
+            borderRadius="2xl"
+            p={{ base: 8, md: 12 }}
+            textAlign="center"
+            position="relative"
+            overflow="hidden"
+            border="1px solid"
+            borderColor={borderColor}
+            boxShadow="lg"
+          >
+            {/* Decorative elements */}
+            <Box
+              position="absolute"
+              top="-50px"
+              right="-50px"
+              width="150px"
+              height="150px"
+              bg="blue.200"
+              borderRadius="full"
+              filter="blur(60px)"
+              opacity={0.3}
+            />
+            <Box
+              position="absolute"
+              bottom="-50px"
+              left="-50px"
+              width="150px"
+              height="150px"
+              bg="purple.200"
+              borderRadius="full"
+              filter="blur(60px)"
+              opacity={0.3}
+            />
+            
+            <VStack spacing={6} position="relative" zIndex={1} mb={8}>
+              <Badge colorScheme="blue" fontSize="sm" px={4} py={1} borderRadius="full">
+                📬 Stay Updated
+              </Badge>
+              <Heading size="xl" maxW="2xl" mx="auto">
+                Get Career Tips & Resources Delivered
+              </Heading>
+              <Text fontSize="lg" color={mutedColor} maxW="xl" mx="auto">
+                Join thousands of professionals receiving weekly insights and free courses directly to their inbox.
+              </Text>
+            </VStack>
+
+            {/* Newsletter Embed */}
+            <Box
+              maxW="600px"
+              mx="auto"
+              position="relative"
+              zIndex={1}
+            >
+              <Box
+                as="iframe"
+                src="https://embeds.beehiiv.com/e879c9bf-696b-4582-9c45-9b926a704ba9?slim=true"
+                data-test-id="beehiiv-embed"
+                height="70"
+                frameBorder="0"
+                scrolling="no"
+                style={{
+                  margin: 0,
+                  borderRadius: '8px',
+                  backgroundColor: 'transparent',
+                  width: '100%',
+                }}
+              />
+            </Box>
+          </MotionBox>
+        </Box>
+      </Container>
+    </Box>
   )
 }
 

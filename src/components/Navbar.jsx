@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { 
   Box, 
   Flex, 
@@ -8,25 +9,43 @@ import {
   IconButton, 
   Collapse, 
   VStack,
+  HStack,
   Text,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
   MenuDivider,
-  useDisclosure
+  useDisclosure,
+  useToast,
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 import { HamburgerIcon, CloseIcon, ChevronDownIcon } from '@chakra-ui/icons'
-import { FaPlus, FaList, FaBookOpen, FaEdit, FaMoneyBillWave, FaBook, FaCog, FaInfoCircle, FaEnvelope, FaShieldAlt, FaComments } from 'react-icons/fa'
+import { FaPlus, FaList, FaBookOpen, FaEdit, FaMoneyBillWave, FaBook, FaCog, FaInfoCircle, FaEnvelope, FaShieldAlt, FaComments, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa'
+import { useAuth } from '../context/AuthContext'
 
 const Navbar = () => {
-  const { user, signOut, isAdmin, loading } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user, isAdmin, signOut } = useAuth()
+  const navigate = useNavigate()
+  const toast = useToast()
 
   const bgColor = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.700')
+
+  const handleSignOut = async () => {
+    const { error } = await signOut()
+    if (!error) {
+      toast({
+        title: 'Signed out',
+        description: 'You have been signed out successfully.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+      navigate('/')
+    }
+  }
 
   return (
     <Box bg={bgColor} px={4} borderBottom="1px" borderColor={borderColor}>
@@ -34,271 +53,131 @@ const Navbar = () => {
         <ChakraLink 
           as={RouterLink} 
           to="/" 
-          fontSize="xl" 
-          fontWeight="bold" 
+          fontSize="2xl"
+          fontWeight="800" 
+          letterSpacing="tight"
           _hover={{ 
             textDecoration: 'none',
             color: 'blue.500',
             transform: 'scale(1.05)',
-            textShadow: '0 0 8px rgba(66, 153, 225, 0.6)'
+          }}
+          _focus={{
+            boxShadow: 'none',
+            outline: 'none',
+          }}
+          _active={{
+            boxShadow: 'none',
           }}
           transition="all 0.3s ease"
           cursor="pointer"
         >
-          Growlytic
+          growlytic
         </ChakraLink>
 
         {/* Desktop Navigation */}
-        <Flex alignItems="center" gap={4} display={{ base: 'none', md: 'flex' }}>
-          <ChakraLink 
-            as={RouterLink} 
-            to="/jobs"
+        <Flex alignItems="center" gap={8} display={{ base: 'none', md: 'flex' }}>
+          <ChakraLink
+            as={RouterLink}
+            to="/free-courses"
+            fontSize="xl"
+            fontWeight="600"
             position="relative"
             _hover={{ 
               color: 'blue.500',
-              transform: 'translateY(-2px)',
+              textDecoration: 'none',
               _after: {
                 width: '100%',
-                opacity: 1
               }
             }}
             _after={{
               content: '""',
               position: 'absolute',
               bottom: '-4px',
-              left: '0',
-              width: '0%',
+              left: 0,
+              width: 0,
               height: '2px',
               bg: 'blue.500',
-              transition: 'all 0.3s ease',
-              opacity: 0
+              transition: 'width 0.2s ease',
             }}
-            transition="all 0.3s ease"
+            transition="all 0.2s ease"
           >
-            Internships
+            Recommended Courses
           </ChakraLink>
 
-          {/* Resources Dropdown Menu */}
-          <Menu>
-            <MenuButton
-              as={Button}
-              rightIcon={<ChevronDownIcon />}
-              variant="ghost"
-              _hover={{
-                bg: 'gray.100',
-                transform: 'translateY(-2px)',
-              }}
-              _active={{
-                transform: 'translateY(0px)',
-              }}
-              transition="all 0.3s ease"
-            >
-              Resources
-            </MenuButton>
-            <MenuList>
-              <MenuItem as={RouterLink} to="/free-courses" icon={<FaBookOpen />}>
-                Free Courses
-              </MenuItem>
-              <MenuDivider />
-              <MenuItem as={RouterLink} to="/about" icon={<FaInfoCircle />}>
-                About Us
-              </MenuItem>
-              <MenuItem as={RouterLink} to="/contact" icon={<FaEnvelope />}>
-                Contact
-              </MenuItem>
-              <MenuItem as={RouterLink} to="/privacy" icon={<FaShieldAlt />}>
-                Privacy Policy
-              </MenuItem>
-            </MenuList>
-          </Menu>
-
-          <ChakraLink 
-            as={RouterLink} 
-            to="/opportunities"
-            position="relative"
-            _hover={{ 
-              color: 'orange.500',
-              transform: 'translateY(-2px)',
-              _after: {
-                width: '100%',
-                opacity: 1
-              }
-            }}
-            _after={{
-              content: '""',
-              position: 'absolute',
-              bottom: '-4px',
-              left: '0',
-              width: '0%',
-              height: '2px',
-              bg: 'orange.500',
-              transition: 'all 0.3s ease',
-              opacity: 0
-            }}
-            transition="all 0.3s ease"
-          >
-            Opportunities
-          </ChakraLink>
           <ChakraLink 
             as={RouterLink} 
             to="/blogs"
+            fontSize="xl"
+            fontWeight="600"
             position="relative"
             _hover={{ 
               color: 'pink.500',
-              transform: 'translateY(-2px)',
+              textDecoration: 'none',
               _after: {
                 width: '100%',
-                opacity: 1
               }
             }}
             _after={{
               content: '""',
               position: 'absolute',
               bottom: '-4px',
-              left: '0',
-              width: '0%',
+              left: 0,
+              width: 0,
               height: '2px',
               bg: 'pink.500',
-              transition: 'all 0.3s ease',
-              opacity: 0
+              transition: 'width 0.2s ease',
             }}
-            transition="all 0.3s ease"
+            transition="all 0.2s ease"
           >
             Articles
           </ChakraLink>
-          
-          {user && !loading ? (
-            <>
-              {isAdmin && (
-                <Menu>
-                  <MenuButton
-                    as={Button}
-                    rightIcon={<ChevronDownIcon />}
-                    leftIcon={<FaCog />}
-                    variant="ghost"
-                    colorScheme="blue"
-                    _hover={{
-                      bg: 'blue.50',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 12px rgba(66, 153, 225, 0.3)',
-                      borderColor: 'blue.300'
-                    }}
-                    _active={{
-                      transform: 'translateY(0px)',
-                      boxShadow: '0 2px 6px rgba(66, 153, 225, 0.2)'
-                    }}
-                    transition="all 0.3s ease"
-                    border="1px solid transparent"
-                  >
-                    Admin Dashboard
-                  </MenuButton>
-                  <MenuList>
-                    <MenuItem as={RouterLink} to="/create-job" icon={<FaPlus />}>
-                      Create Job
-                    </MenuItem>
-                    <MenuItem as={RouterLink} to="/admin/job-management" icon={<FaList />}>
-                      Job Management
-                    </MenuItem>
-                    <MenuDivider />
-                    <MenuItem as={RouterLink} to="/admin/free-courses" icon={<FaBookOpen />}>
-                      Free Courses
-                    </MenuItem>
-                    <MenuItem as={RouterLink} to="/admin/opportunities" icon={<FaMoneyBillWave />}>
-                      Opportunities
-                    </MenuItem>
-                    <MenuDivider />
-                    <MenuItem as={RouterLink} to="/admin/blog-management" icon={<FaEdit />}>
-                      Blog Management
-                    </MenuItem>
-                    <MenuItem as={RouterLink} to="/admin/contact-messages" icon={<FaComments />}>
-                      Contact Messages
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-              )}
-                             <ChakraLink 
-                 as={RouterLink} 
-                 to="/saved-items"
-                 position="relative"
-                 _hover={{ 
-                   color: 'red.500',
-                   transform: 'translateY(-2px)',
-                   _after: {
-                     width: '100%',
-                     opacity: 1
-                   }
-                 }}
-                 _after={{
-                   content: '""',
-                   position: 'absolute',
-                   bottom: '-4px',
-                   left: '0',
-                   width: '0%',
-                   height: '2px',
-                   bg: 'red.500',
-                   transition: 'all 0.3s ease',
-                   opacity: 0
-                 }}
-                 transition="all 0.3s ease"
-               >
-                 Saved Items
-              </ChakraLink>
-               <Button 
-                 onClick={() => signOut()} 
-                 variant="outline"
-                 _hover={{
-                   bg: 'red.50',
-                   borderColor: 'red.300',
-                   color: 'red.600',
-                   transform: 'translateY(-2px)',
-                   boxShadow: '0 4px 12px rgba(245, 101, 101, 0.3)'
-                 }}
-                 _active={{
-                   transform: 'translateY(0px)',
-                   boxShadow: '0 2px 6px rgba(245, 101, 101, 0.2)'
-                 }}
-                 transition="all 0.3s ease"
-               >
-                Sign Out
-              </Button>
-            </>
-          ) : user && loading ? (
-            <Box>
-              Loading...
-            </Box>
-          ) : (
-            <>
-               <ChakraLink 
-                 as={RouterLink} 
-                 to="/login"
-                 _hover={{
-                   color: 'blue.500',
-                   transform: 'translateY(-2px)',
-                   textDecoration: 'none'
-                 }}
-                 transition="all 0.3s ease"
-               >
-                Login
-              </ChakraLink>
-               <Button 
-                 as={RouterLink} 
-                 to="/register" 
-                 colorScheme="blue"
-                 _hover={{
-                   bg: 'blue.600',
-                   transform: 'translateY(-2px)',
-                   boxShadow: '0 4px 12px rgba(66, 153, 225, 0.4)'
-                 }}
-                 _active={{
-                   transform: 'translateY(0px)',
-                   boxShadow: '0 2px 6px rgba(66, 153, 225, 0.3)'
-                 }}
-                 transition="all 0.3s ease"
-               >
-                Sign Up
-              </Button>
-            </>
-          )}
+
+          {/* Admin Dropdown Menu - Only show when logged in */}
+          {isAdmin && user ? (
+            <Menu>
+              <MenuButton
+                as={Button}
+                rightIcon={<ChevronDownIcon />}
+                variant="ghost"
+                colorScheme="purple"
+                _hover={{
+                  bg: 'purple.50',
+                  transform: 'translateY(-2px)',
+                }}
+                _active={{
+                  transform: 'translateY(0px)',
+                }}
+                transition="all 0.3s ease"
+              >
+                <HStack spacing={1}>
+                  <FaCog />
+                  <Text>Admin</Text>
+                </HStack>
+              </MenuButton>
+              <MenuList>
+                <MenuItem as={RouterLink} to="/admin/blog-management" icon={<FaEdit />}>
+                  Blog Management
+                </MenuItem>
+                <MenuItem as={RouterLink} to="/admin/free-courses" icon={<FaBookOpen />}>
+                  Courses Dashboard
+                </MenuItem>
+                <MenuItem as={RouterLink} to="/admin/free-books" icon={<FaBook />}>
+                  Books Dashboard
+                </MenuItem>
+                <MenuItem as={RouterLink} to="/admin/opportunities" icon={<FaMoneyBillWave />}>
+                  Opportunities
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem as={RouterLink} to="/admin/contact-messages" icon={<FaComments />}>
+                  Contact Messages
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem icon={<FaSignOutAlt />} onClick={handleSignOut} color="red.500">
+                  Sign Out
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          ) : null}
         </Flex>
 
         {/* Mobile Menu Button */}
@@ -326,63 +205,46 @@ const Navbar = () => {
           flexDirection="column"
           alignItems="center"
           gap={3}
+          bg={bgColor}
         >
-                     <ChakraLink 
-             as={RouterLink} 
-             to="/jobs" 
-             onClick={() => setIsMenuOpen(false)}
-             _hover={{
-               color: 'blue.500',
-               transform: 'translateX(8px)',
-               bg: 'blue.50',
-               px: 3,
-               py: 1,
-               borderRadius: 'md'
-             }}
-             transition="all 0.3s ease"
-             py={2}
-           >
-            Browse Jobs
-          </ChakraLink>
-
-          {/* Resources Menu for Mobile */}
-          <VStack spacing={2} width="100%">
-            <Text fontWeight="bold" fontSize="sm" color="gray.500" alignSelf="start" pl={3}>
-              Resources
-            </Text>
            <ChakraLink 
              as={RouterLink} 
              to="/free-courses" 
              onClick={() => setIsMenuOpen(false)}
-             _hover={{
-               color: 'green.500',
-               transform: 'translateX(8px)',
-               bg: 'green.50',
-               px: 3,
-               py: 1,
-               borderRadius: 'md'
-             }}
-             transition="all 0.3s ease"
-             py={2}
-             pl={6}
+             fontWeight="600"
+             fontSize="lg"
+             width="full"
+             textAlign="center"
+             py={3}
+             _hover={{ color: 'blue.500', bg: 'gray.50' }}
            >
-            Free Courses
+            Recommended Courses
           </ChakraLink>
+          <ChakraLink 
+             as={RouterLink} 
+             to="/blogs" 
+             onClick={() => setIsMenuOpen(false)}
+             fontWeight="600"
+             fontSize="lg"
+             width="full"
+             textAlign="center"
+             py={3}
+             _hover={{ color: 'pink.500', bg: 'gray.50' }}
+           >
+             Articles
+           </ChakraLink>
+
            <ChakraLink 
              as={RouterLink} 
              to="/about" 
              onClick={() => setIsMenuOpen(false)}
-             _hover={{
-               color: 'blue.500',
-               transform: 'translateX(8px)',
-               bg: 'blue.50',
-               px: 3,
-               py: 1,
-               borderRadius: 'md'
-             }}
-             transition="all 0.3s ease"
+             fontWeight="500"
+             fontSize="md"
+             width="full"
+             textAlign="center"
              py={2}
-             pl={6}
+             color="gray.600"
+             _hover={{ color: 'blue.500', bg: 'gray.50' }}
            >
              About Us
            </ChakraLink>
@@ -390,17 +252,13 @@ const Navbar = () => {
              as={RouterLink} 
              to="/contact" 
              onClick={() => setIsMenuOpen(false)}
-             _hover={{
-               color: 'green.500',
-               transform: 'translateX(8px)',
-               bg: 'green.50',
-               px: 3,
-               py: 1,
-               borderRadius: 'md'
-             }}
-             transition="all 0.3s ease"
+             fontWeight="500"
+             fontSize="md"
+             width="full"
+             textAlign="center"
              py={2}
-             pl={6}
+             color="gray.600"
+             _hover={{ color: 'blue.500', bg: 'gray.50' }}
            >
              Contact
            </ChakraLink>
@@ -408,118 +266,128 @@ const Navbar = () => {
              as={RouterLink} 
              to="/privacy" 
              onClick={() => setIsMenuOpen(false)}
-             _hover={{
-               color: 'purple.500',
-               transform: 'translateX(8px)',
-               bg: 'purple.50',
-               px: 3,
-               py: 1,
-               borderRadius: 'md'
-             }}
-             transition="all 0.3s ease"
+             fontWeight="500"
+             fontSize="md"
+             width="full"
+             textAlign="center"
              py={2}
-             pl={6}
+             color="gray.600"
+             _hover={{ color: 'blue.500', bg: 'gray.50' }}
            >
              Privacy Policy
            </ChakraLink>
-          </VStack>
 
-           <ChakraLink 
-             as={RouterLink} 
-             to="/opportunities" 
-             onClick={() => setIsMenuOpen(false)}
-             _hover={{
-               color: 'orange.500',
-               transform: 'translateX(8px)',
-               bg: 'orange.50',
-               px: 3,
-               py: 1,
-               borderRadius: 'md'
-             }}
-             transition="all 0.3s ease"
-             py={2}
-           >
-             Opportunities
-           </ChakraLink>
-           <ChakraLink 
-             as={RouterLink} 
-             to="/blogs" 
-             onClick={() => setIsMenuOpen(false)}
-             _hover={{
-               color: 'pink.500',
-               transform: 'translateX(8px)',
-               bg: 'pink.50',
-               px: 3,
-               py: 1,
-               borderRadius: 'md'
-             }}
-             transition="all 0.3s ease"
-             py={2}
-           >
-            Blogs
-          </ChakraLink>
-
-          {user && !loading ? (
-            <>
-              {isAdmin && (
-                <VStack spacing={3} width="100%">
-                  <Menu>
-                    <MenuButton
-                      as={Button}
-                      rightIcon={<ChevronDownIcon />}
-                      leftIcon={<FaCog />}
-                      variant="outline"
-                      colorScheme="blue"
-                     width="100%"
-                  >
-                      Admin Dashboard
-                    </MenuButton>
-                    <MenuList>
-                      <MenuItem as={RouterLink} to="/create-job" icon={<FaPlus />} onClick={() => setIsMenuOpen(false)}>
-                    Create Job
-                      </MenuItem>
-                      <MenuItem as={RouterLink} to="/admin/job-management" icon={<FaList />} onClick={() => setIsMenuOpen(false)}>
-                    Job Management
-                      </MenuItem>
-                      <MenuDivider />
-                      <MenuItem as={RouterLink} to="/admin/free-courses" icon={<FaBookOpen />} onClick={() => setIsMenuOpen(false)}>
-                    Free Courses
-                      </MenuItem>
-                      <MenuItem as={RouterLink} to="/admin/opportunities" icon={<FaMoneyBillWave />} onClick={() => setIsMenuOpen(false)}>
-                        Opportunities
-                      </MenuItem>
-                      <MenuDivider />
-                      <MenuItem as={RouterLink} to="/admin/blog-management" icon={<FaEdit />} onClick={() => setIsMenuOpen(false)}>
-                    Blog Management
-                      </MenuItem>
-                      <MenuItem as={RouterLink} to="/admin/contact-messages" icon={<FaComments />} onClick={() => setIsMenuOpen(false)}>
-                        Contact Messages
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                </VStack>
-              )}
-              <ChakraLink as={RouterLink} to="/saved-items" onClick={() => setIsMenuOpen(false)}>
-                Saved Items
-              </ChakraLink>
-              <Button onClick={() => { signOut(); setIsMenuOpen(false) }} variant="outline" width="100%">
+          {/* Admin Menu for Mobile - Only show when logged in */}
+          {isAdmin && user ? (
+            <VStack spacing={2} width="100%" mt={4}>
+              <Text fontWeight="bold" fontSize="sm" color="purple.500" alignSelf="start" pl={3}>
+                Admin Dashboard
+              </Text>
+              <ChakraLink 
+                as={RouterLink} 
+                to="/admin/blog-management" 
+                onClick={() => setIsMenuOpen(false)}
+                _hover={{
+                  color: 'purple.500',
+                  transform: 'translateX(8px)',
+                  bg: 'purple.50',
+                  px: 3,
+                  py: 1,
+                  borderRadius: 'md'
+              }}
+              transition="all 0.3s ease"
+              py={2}
+              pl={6}
+            >
+              Blog Management
+            </ChakraLink>
+            <ChakraLink 
+              as={RouterLink} 
+              to="/admin/free-courses" 
+              onClick={() => setIsMenuOpen(false)}
+              _hover={{
+                color: 'purple.500',
+                transform: 'translateX(8px)',
+                bg: 'purple.50',
+                px: 3,
+                py: 1,
+                borderRadius: 'md'
+              }}
+              transition="all 0.3s ease"
+              py={2}
+              pl={6}
+            >
+              Courses Dashboard
+            </ChakraLink>
+            <ChakraLink 
+              as={RouterLink} 
+              to="/admin/free-books" 
+              onClick={() => setIsMenuOpen(false)}
+              _hover={{
+                color: 'purple.500',
+                transform: 'translateX(8px)',
+                bg: 'purple.50',
+                px: 3,
+                py: 1,
+                borderRadius: 'md'
+              }}
+              transition="all 0.3s ease"
+              py={2}
+              pl={6}
+            >
+              Books Dashboard
+            </ChakraLink>
+            <ChakraLink 
+              as={RouterLink} 
+              to="/admin/opportunities" 
+              onClick={() => setIsMenuOpen(false)}
+              _hover={{
+                color: 'purple.500',
+                transform: 'translateX(8px)',
+                bg: 'purple.50',
+                px: 3,
+                py: 1,
+                borderRadius: 'md'
+              }}
+              transition="all 0.3s ease"
+              py={2}
+              pl={6}
+            >
+              Opportunities
+            </ChakraLink>
+            <ChakraLink 
+              as={RouterLink} 
+              to="/admin/contact-messages" 
+              onClick={() => setIsMenuOpen(false)}
+              _hover={{
+                color: 'purple.500',
+                transform: 'translateX(8px)',
+                bg: 'purple.50',
+                px: 3,
+                py: 1,
+                borderRadius: 'md'
+              }}
+              transition="all 0.3s ease"
+              py={2}
+              pl={6}
+            >
+              Contact Messages
+            </ChakraLink>
+              <Button
+                colorScheme="red"
+                variant="ghost"
+                size="sm"
+                leftIcon={<FaSignOutAlt />}
+                onClick={() => {
+                  handleSignOut()
+                  setIsMenuOpen(false)
+                }}
+                mt={2}
+              >
                 Sign Out
               </Button>
-            </>
-          ) : user && loading ? (
-            <Box>
-              Loading...
-            </Box>
-          ) : (
-            <VStack spacing={3} width="100%">
-              <ChakraLink as={RouterLink} to="/login" onClick={() => setIsMenuOpen(false)} width="100%" textAlign="center">
-                Login
-              </ChakraLink>
-              <Button as={RouterLink} to="/register" colorScheme="blue" onClick={() => setIsMenuOpen(false)} width="100%">
-                Sign Up
-              </Button>
             </VStack>
-          )}
+          ) : null}
         </Box>
       </Collapse>
     </Box>

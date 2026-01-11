@@ -1,0 +1,18 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[dev]
+  command = "npm run dev"
+  port = 5173
+
+[[edge_functions]]
+  path = "/*"
+  function = "og-tags"
+
+# Ensure environment variables are available to edge functions
+[context.production.environment]
+  # These will use the values from Netlify's environment variables UI
+
+[context.deploy-preview.environment]
+  # These will use the values from Netlify's environment variables UI

@@ -1,243 +1,118 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
-import sessionManager from '../utils/sessionManager'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
-const AuthContext = createContext(undefined)
+const AuthContext = createContext({});
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [session, setSession] = useState(null)
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Initialize auth state
-    const initializeAuth = async () => {
+    // Check active session on mount
+    const checkUser = async () => {
       try {
-        // Setup session persistence
-        sessionManager.setupPersistence()
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // Get the current session
-        const currentSession = await sessionManager.getCurrentSession()
-        
-        if (currentSession) {
-          setSession(currentSession)
-          setUser(currentSession.user)
-          console.log('Session restored for user:', currentSession.user.email)
+        if (session?.user) {
+          setUser(session.user);
+          // User is authenticated, set as admin
+          setIsAdmin(true);
         } else {
-          console.log('No existing session found')
+          setUser(null);
+          setIsAdmin(false);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error)
+        console.error('Error checking session:', error);
+        setUser(null);
+        setIsAdmin(false);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    initializeAuth()
+    checkUser();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email)
-      
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      // Handle specific auth events
-      if (event === 'SIGNED_IN') {
-        console.log('User signed in:', session?.user?.email)
-        // Session is automatically persisted by Supabase
-      } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out')
-        setUser(null)
-        setSession(null)
-        setIsAdmin(false)
-        sessionManager.clearSession()
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed')
+      if (session?.user) {
+        setUser(session.user);
+        setIsAdmin(true);
+      } else {
+        setUser(null);
+        setIsAdmin(false);
       }
-    })
+      setLoading(false);
+    });
 
     return () => {
-      subscription.unsubscribe()
-      sessionManager.clearSession()
-    }
-  }, [])
-
-  useEffect(() => {
-    const fetchAdminStatus = async () => {
-      if (!user) {
-        setIsAdmin(false)
-        return
-      }
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', user.id)
-          .single()
-        
-        if (error) {
-          console.error('Error fetching admin status:', error)
-          setIsAdmin(false)
-        } else {
-          setIsAdmin(data?.is_admin === true)
-        }
-      } catch (error) {
-        console.error('Error in fetchAdminStatus:', error)
-        setIsAdmin(false)
-      }
-    }
-
-    fetchAdminStatus()
-  }, [user])
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   const signIn = async (email, password) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
-      })
-      
-      if (error) throw error
-      
-      // Session is automatically handled by onAuthStateChange and persisted
-      console.log('User signed in successfully:', email)
-      return data
-    } catch (error) {
-      console.error('Sign in error:', error)
-      throw error
-    }
-  }
-
-  const signUp = async (email, password) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
-        password 
-      })
-      
-      if (error) throw error
-      
-      console.log('User signed up successfully:', email)
-      return data
-    } catch (error) {
-      console.error('Sign up error:', error)
-      throw error
-    }
-  }
-
-  const sendMagicLink = async (email) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
-        }
-      })
+        password,
+      });
       
-      if (error) throw error
-      
-      console.log('Magic link sent to:', email)
-      return data
+      if (error) throw error;
+      return { data, error: null };
     } catch (error) {
-      console.error('Magic link error:', error)
-      throw error
+      return { data: null, error };
     }
-  }
+  };
+
+  const signUp = async (email, password, metadata = {}) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+        },
+      });
+      
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
+  };
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      
-      // Clear local state
-      setUser(null)
-      setSession(null)
-      setIsAdmin(false)
-      sessionManager.clearSession()
-      
-      console.log('User signed out successfully')
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setIsAdmin(false);
+      return { error: null };
     } catch (error) {
-      console.error('Sign out error:', error)
-      throw error
+      return { error };
     }
-  }
+  };
 
-  const refreshSession = async () => {
-    try {
-      // Check if we have a valid session before attempting refresh
-      const currentSession = await sessionManager.getCurrentSession()
-      if (!currentSession || !currentSession.refresh_token) {
-        console.log('No valid session to refresh')
-        return null
-      }
-
-      const data = await sessionManager.refreshSession()
-      console.log('Session refreshed successfully')
-      return data
-    } catch (error) {
-      console.error('Session refresh error:', error)
-      
-      // If refresh token is invalid, clear the session
-      if (error.message?.includes('Invalid Refresh Token') || 
-          error.message?.includes('Refresh Token Not Found')) {
-        console.log('Invalid refresh token, clearing session')
-        setUser(null)
-        setSession(null)
-        setIsAdmin(false)
-        sessionManager.clearSession()
-      }
-      
-      throw error
-    }
-  }
-
-  const getSession = () => {
-    return session
-  }
-
-  const isAuthenticated = () => {
-    return !!user && !!session && !!session.access_token
-  }
-
-  // Check if session is about to expire
-  const isSessionExpiringSoon = () => {
-    if (!session || !session.expires_at) return false
-    
-    const expiresAt = new Date(session.expires_at * 1000)
-    const now = new Date()
-    const timeUntilExpiry = expiresAt.getTime() - now.getTime()
-    const fiveMinutes = 5 * 60 * 1000
-    
-    return timeUntilExpiry < fiveMinutes && timeUntilExpiry > 0
-  }
+  const value = {
+    user,
+    isAdmin,
+    loading,
+    signIn,
+    signUp,
+    signOut,
+  };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      session,
-      signIn, 
-      signUp, 
-      sendMagicLink, 
-      signOut, 
-      isAdmin,
-      refreshSession,
-      getSession,
-      isAuthenticated,
-      isSessionExpiringSoon
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
-  )
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-} 
+  );
+};

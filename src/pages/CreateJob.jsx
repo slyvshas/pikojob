@@ -104,7 +104,7 @@ const CreateJob = () => {
         isClosable: true,
       })
 
-      navigate('/jobs')
+      navigate('/')
     } catch (error) {
       toast({
         title: 'Error creating job',

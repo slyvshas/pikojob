@@ -8,7 +8,6 @@ Sitemap: https://growlytic.app/sitemap.xml
 # Disallow: /create-job
 
 # Allow all other pages
-Allow: /jobs
 Allow: /free-courses
 Allow: /blogs
 Allow: /login

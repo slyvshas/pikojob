@@ -28,22 +28,21 @@ import {
   IconButton,
   useToast,
 } from '@chakra-ui/react';
-import { FaExternalLinkAlt, FaFilter, FaTimes, FaBookmark, FaRegBookmark, FaBook, FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaFilter, FaTimes, FaLightbulb, FaCalendarAlt, FaBook, FaMapMarkerAlt } from 'react-icons/fa';
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
 
 const Opportunities = () => {
   const [opportunities, setOpportunities] = useState([]);
-  const [savedOpportunities, setSavedOpportunities] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const { isOpen, onToggle } = useDisclosure();
   const cardBg = useColorModeValue('white', 'gray.800');
-  const { isAdmin, user } = useAuth();
   const [blogSlideUpOpen, setBlogSlideUpOpen] = useState(false);
   const [activeBlogSlug, setActiveBlogSlug] = useState(null);
   const toast = useToast();
+  const { isAdmin } = useAuth();
 
   // Get filter values from URL
   const selectedCategories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
@@ -68,96 +67,9 @@ const Opportunities = () => {
       setLoading(false);
     };
     fetchOpportunities();
-    
-    if (user) {
-      fetchSavedOpportunities();
-    }
-  }, [user]);
+  }, []);
 
-  const fetchSavedOpportunities = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('saved_opportunities')
-        .select('opportunity_id')
-        .eq('user_id', user.id);
 
-      if (error) throw error;
-
-      const savedOpportunityIds = new Set(data.map(item => item.opportunity_id));
-      setSavedOpportunities(savedOpportunityIds);
-    } catch (error) {
-      console.error('Error fetching saved opportunities:', error);
-    }
-  };
-
-  const handleSaveOpportunity = async (opportunityId) => {
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to save opportunities',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    try {
-      if (savedOpportunities.has(opportunityId)) {
-        // Unsave opportunity
-        const { error } = await supabase
-          .from('saved_opportunities')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('opportunity_id', opportunityId);
-
-        if (error) throw error;
-
-        setSavedOpportunities(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(opportunityId);
-          return newSet;
-        });
-
-        toast({
-          title: 'Opportunity Unsaved',
-          description: 'Opportunity has been removed from your saved opportunities',
-          status: 'info',
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        // Save opportunity
-        const { error } = await supabase
-          .from('saved_opportunities')
-          .insert({
-            user_id: user.id,
-            opportunity_id: opportunityId,
-          });
-
-        if (error) throw error;
-
-        setSavedOpportunities(prev => new Set([...prev, opportunityId]));
-
-        toast({
-          title: 'Opportunity Saved',
-          description: 'Opportunity has been added to your saved opportunities',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    } catch (error) {
-      console.error('Error saving/unsaving opportunity:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save/unsave opportunity',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
 
   // Filter opportunities based on selected filters
   const filteredOpportunities = useMemo(() => {
@@ -447,16 +359,6 @@ const Opportunities = () => {
                   left={3}
                   zIndex={2}
                 >
-                  <IconButton
-                    aria-label={savedOpportunities.has(opportunity.id) ? 'Unsave opportunity' : 'Save opportunity'}
-                    icon={savedOpportunities.has(opportunity.id) ? <FaBookmark /> : <FaRegBookmark />}
-                    colorScheme={savedOpportunities.has(opportunity.id) ? 'blue' : 'gray'}
-                    variant="ghost"
-                    size="sm"
-                    bg="white"
-                    _hover={{ bg: 'gray.50' }}
-                    onClick={() => handleSaveOpportunity(opportunity.id)}
-                  />
                 </Box>
 
                 {/* Opportunity Content */}

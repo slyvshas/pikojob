@@ -18,17 +18,194 @@ import {
   Center,
   Spinner,
   Flex,
+  Skeleton,
+  Button,
+  Input,
+  InputGroup,
+  InputLeftElement,
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
-import { FaBookmark, FaRegBookmark, FaCalendarAlt, FaUser, FaTag } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext';
+import { FaCalendarAlt, FaUser, FaChevronDown, FaSearch } from 'react-icons/fa';
+import { generateCoverForBlog } from '../utils/generateBlogCover';
+
+// BlogCard component with auto-generated cover support
+const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate }) => {
+  const [generatedCover, setGeneratedCover] = useState(null);
+  const [coverLoading, setCoverLoading] = useState(!blog.cover_image_url);
+  
+  // Move useColorModeValue to top level - MUST be called unconditionally
+  const skeletonBg = useColorModeValue('gray.100', 'gray.700');
+
+  useEffect(() => {
+    if (!blog.cover_image_url) {
+      generateCoverForBlog(blog.title, blog.category)
+        .then(dataUrl => {
+          setGeneratedCover(dataUrl);
+          setCoverLoading(false);
+        })
+        .catch(() => setCoverLoading(false));
+    }
+  }, [blog.title, blog.category, blog.cover_image_url]);
+
+  const coverImage = blog.cover_image_url || generatedCover;
+
+  return (
+    <Box position="relative" h="full">
+      <Link
+        as={RouterLink}
+        to={`/blogs/${blog.slug}`}
+        _hover={{ textDecoration: 'none' }}
+        display="block"
+        h="full"
+      >
+        <Box 
+          bg={cardBg}
+          borderRadius={{ base: 'xl', md: '2xl' }}
+          overflow="hidden"
+          border="1px solid"
+          borderColor={borderColor}
+          transition="all 0.3s ease-in-out"
+          _hover={{ 
+            transform: { base: 'none', md: 'translateY(-4px)' },
+            boxShadow: { base: 'md', md: '0 20px 40px rgba(0, 0, 0, 0.1)' },
+            borderColor: 'blue.300'
+          }}
+          h="full"
+          display="flex"
+          flexDirection="column"
+        >
+          {/* Cover Image - Original or Auto-Generated */}
+          <Box 
+            position="relative" 
+            overflow="hidden"
+            // Fixed aspect ratio for consistent card heights
+            paddingBottom={{ base: '50%', md: '52.5%' }}
+            bg={skeletonBg}
+            flexShrink={0}
+          >
+            {coverLoading ? (
+              <Skeleton 
+                position="absolute"
+                top={0}
+                left={0}
+                width="100%"
+                height="100%"
+              />
+            ) : coverImage ? (
+              <>
+                <Image 
+                  src={coverImage} 
+                  alt={blog.title}
+                  position="absolute"
+                  top={0}
+                  left={0}
+                  width="100%"
+                  height="100%"
+                  objectFit="cover"
+                  loading="lazy"
+                  htmlWidth={1200}
+                  htmlHeight={630}
+                  transition="transform 0.3s ease-in-out"
+                  _groupHover={{ transform: 'scale(1.05)' }}
+                />
+                <Box
+                  position="absolute"
+                  top={0}
+                  left={0}
+                  right={0}
+                  bottom={0}
+                  bg="linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 100%)"
+                />
+              </>
+            ) : null}
+          </Box>
+
+          {/* Content */}
+          <Box 
+            p={{ base: 3, sm: 4, md: 5 }} 
+            flex="1" 
+            display="flex" 
+            flexDirection="column"
+          >
+            {/* Title */}
+            <Heading 
+              fontSize={{ base: 'sm', sm: 'md', md: 'lg' }}
+              mb={{ base: 1.5, md: 2 }}
+              color={textColor}
+              fontFamily="'Poppins', sans-serif"
+              fontWeight="600"
+              lineHeight="1.3"
+              noOfLines={2}
+            >
+              {blog.title}
+            </Heading>
+
+            {/* Excerpt - hidden on very small screens */}
+            <Text 
+              fontSize={{ base: 'xs', sm: 'sm', md: 'sm' }}
+              color={mutedColor} 
+              mb={{ base: 2, md: 3 }}
+              lineHeight="1.5"
+              noOfLines={{ base: 2, md: 3 }}
+              flex="1"
+              fontFamily="'Poppins', sans-serif"
+              display={{ base: 'none', sm: '-webkit-box' }}
+            >
+              {blog.excerpt}
+            </Text>
+
+            {/* Meta Information */}
+            <HStack 
+              spacing={{ base: 2, md: 3 }} 
+              color={mutedColor} 
+              fontSize={{ base: '2xs', sm: 'xs', md: 'sm' }}
+              flexWrap="wrap"
+              mt="auto"
+            >
+              <HStack spacing={1}>
+                <FaUser size={10} />
+                <Text fontWeight="500" noOfLines={1}>
+                  {blog.author_name || 'Author'}
+                </Text>
+              </HStack>
+              <HStack spacing={1} display={{ base: 'none', sm: 'flex' }}>
+                <FaCalendarAlt size={10} />
+                <Text noOfLines={1}>
+                  {formatDate(blog.published_at)}
+                </Text>
+              </HStack>
+              {blog.category && (
+                <Badge 
+                  colorScheme="blue" 
+                  fontSize={{ base: '2xs', md: 'xs' }}
+                  px={2}
+                  py={0.5}
+                  borderRadius="full"
+                  display={{ base: 'none', md: 'inline-flex' }}
+                >
+                  {blog.category}
+                </Badge>
+              )}
+            </HStack>
+          </Box>
+        </Box>
+      </Link>
+    </Box>
+  );
+};
+
+const BLOGS_PER_PAGE = 6;
 
 const Blogs = () => {
   const [blogs, setBlogs] = useState([]);
-  const [savedBlogs, setSavedBlogs] = useState(new Set());
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
-  const { user } = useAuth();
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const toast = useToast();
 
   // Theme colors
@@ -38,107 +215,83 @@ const Blogs = () => {
   const textColor = useColorModeValue('gray.800', 'white');
   const mutedColor = useColorModeValue('gray.600', 'gray.400');
 
-  useEffect(() => {
-    const fetchBlogs = async () => {
+  const fetchBlogs = async (pageNum = 0, append = false, category = 'All', search = '') => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('published_at', { ascending: false });
-      if (error) setError(error.message);
-      else setBlogs(data);
-      setLoading(false);
-    };
-    fetchBlogs();
-    
-    if (user) {
-      fetchSavedBlogs();
     }
-  }, [user]);
 
-  const fetchSavedBlogs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('saved_blogs')
-        .select('blog_slug')
-        .eq('user_id', user.id);
+    const from = pageNum * BLOGS_PER_PAGE;
+    const to = from + BLOGS_PER_PAGE - 1;
 
-      if (error) throw error;
+    let query = supabase
+      .from('blog_posts')
+      .select('*', { count: 'exact' })
+      .order('published_at', { ascending: false });
 
-      const savedBlogSlugs = new Set(data.map(item => item.blog_slug));
-      setSavedBlogs(savedBlogSlugs);
-    } catch (error) {
-      console.error('Error fetching saved blogs:', error);
+    // Apply category filter
+    if (category !== 'All') {
+      query = query.eq('category', category);
+    }
+
+    // Apply search filter
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,excerpt.ilike.%${search}%`);
+    }
+
+    const { data, error, count } = await query.range(from, to);
+
+    if (error) {
+      setError(error.message);
+    } else {
+      if (append) {
+        setBlogs(prev => [...prev, ...data]);
+      } else {
+        setBlogs(data);
+      }
+      // Check if there are more blogs to load
+      setHasMore(from + data.length < count);
+    }
+
+    setLoading(false);
+    setLoadingMore(false);
+  };
+
+  // Fetch unique categories
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('category')
+      .not('category', 'is', null)
+      .order('category');
+
+    if (!error && data) {
+      // Get unique categories and limit to 5
+      const uniqueCategories = [...new Set(data.map(item => item.category))].slice(0, 5);
+      setCategories(uniqueCategories);
     }
   };
 
-  const handleSaveBlog = async (blogSlug) => {
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to save blogs',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
+  useEffect(() => {
+    fetchBlogs(0, false, selectedCategory, searchQuery);
+    fetchCategories();
+  }, [selectedCategory, searchQuery]);
 
-    try {
-      if (savedBlogs.has(blogSlug)) {
-        // Unsave blog
-        const { error } = await supabase
-          .from('saved_blogs')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('blog_slug', blogSlug);
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    setPage(0);
+  };
 
-        if (error) throw error;
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setPage(0);
+  };
 
-        setSavedBlogs(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(blogSlug);
-          return newSet;
-        });
-
-        toast({
-          title: 'Blog Unsaved',
-          description: 'Blog has been removed from your saved items',
-          status: 'info',
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        // Save blog
-        const { error } = await supabase
-          .from('saved_blogs')
-          .insert({
-            user_id: user.id,
-            blog_slug: blogSlug,
-          });
-
-        if (error) throw error;
-
-        setSavedBlogs(prev => new Set([...prev, blogSlug]));
-
-        toast({
-          title: 'Blog Saved',
-          description: 'Blog has been added to your saved items',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    } catch (error) {
-      console.error('Error saving/unsaving blog:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save/unsave blog',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+  const loadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchBlogs(nextPage, true, selectedCategory, searchQuery);
   };
 
   const formatDate = (dateString) => {
@@ -184,8 +337,8 @@ const Blogs = () => {
     <Box bg={bgColor} minH="100vh" py={12}>
       <Container maxW="container.xl">
         <VStack spacing={12} align="stretch">
-          {/* Header */}
-          <Box textAlign="center" mb={8}>
+          {/* Header - Hidden on mobile */}
+          <Box textAlign="center" mb={8} display={{ base: 'none', md: 'block' }}>
             <Heading 
               size="3xl" 
               mb={4} 
@@ -208,6 +361,113 @@ Skills and professional development coverage to advance your career.
 </Text>
           </Box>
 
+          {/* Category Filter Bar */}
+          <Box 
+            bg={cardBg}
+            borderRadius="xl"
+            p={{ base: 3, md: 4 }}
+            border="1px solid"
+            borderColor={borderColor}
+            boxShadow="sm"
+          >
+            <Flex 
+              direction={{ base: 'column', md: 'row' }}
+              gap={{ base: 3, md: 4 }}
+              align={{ base: 'stretch', md: 'center' }}
+            >
+              {/* Category Buttons */}
+              <HStack 
+                spacing={{ base: 2, md: 3 }} 
+                overflowX="auto"
+                flex="1"
+                css={{
+                  '&::-webkit-scrollbar': {
+                    height: '4px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: 'transparent',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#CBD5E0',
+                    borderRadius: '4px',
+                  },
+                }}
+              >
+                <Button
+                  size={{ base: 'sm', md: 'md' }}
+                  variant={selectedCategory === 'All' ? 'solid' : 'ghost'}
+                  colorScheme={selectedCategory === 'All' ? 'blue' : 'gray'}
+                  onClick={() => handleCategoryChange('All')}
+                  borderRadius="lg"
+                  fontWeight="600"
+                  flexShrink={0}
+                  px={{ base: 4, md: 6 }}
+                  position="relative"
+                  _hover={{
+                    bg: selectedCategory === 'All' ? 'blue.600' : 'gray.100',
+                    boxShadow: selectedCategory === 'All' ? 'md' : 'sm',
+                  }}
+                  _dark={{
+                    _hover: {
+                      bg: selectedCategory === 'All' ? 'blue.600' : 'whiteAlpha.200',
+                    }
+                  }}
+                  transition="all 0.2s ease-in-out"
+                >
+                  All
+                </Button>
+                {categories.map((category) => (
+                  <Button
+                    key={category}
+                    size={{ base: 'sm', md: 'md' }}
+                    variant={selectedCategory === category ? 'solid' : 'ghost'}
+                    colorScheme={selectedCategory === category ? 'blue' : 'gray'}
+                    onClick={() => handleCategoryChange(category)}
+                    borderRadius="lg"
+                    fontWeight="600"
+                    flexShrink={0}
+                    px={{ base: 4, md: 6 }}
+                    position="relative"
+                    _hover={{
+                      bg: selectedCategory === category ? 'blue.600' : 'gray.100',
+                      boxShadow: selectedCategory === category ? 'md' : 'sm',
+                    }}
+                    _dark={{
+                      _hover: {
+                        bg: selectedCategory === category ? 'blue.600' : 'whiteAlpha.200',
+                      }
+                    }}
+                    transition="all 0.2s ease-in-out"
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </HStack>
+
+              {/* Search Input */}
+              <InputGroup 
+                size={{ base: 'sm', md: 'md' }} 
+                maxW={{ base: '100%', md: '300px' }}
+                flexShrink={0}
+              >
+                <InputLeftElement pointerEvents="none">
+                  <FaSearch color="gray.400" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search articles..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  borderRadius="lg"
+                  bg={useColorModeValue('white', 'gray.700')}
+                  _focus={{
+                    borderColor: 'blue.400',
+                    boxShadow: '0 0 0 1px #3182ce',
+                  }}
+                />
+              </InputGroup>
+            </Flex>
+          </Box>
+
           {blogs.length === 0 ? (
             <Center py={20}>
               <VStack spacing={4}>
@@ -220,169 +480,49 @@ Skills and professional development coverage to advance your career.
               </VStack>
             </Center>
           ) : (
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
-              {blogs.map((blog) => (
-                <Box key={blog.id} position="relative">
-                  <Link
-                    as={RouterLink}
-                    to={`/blogs/${blog.slug}`}
-                    _hover={{ textDecoration: 'none' }}
-                    display="block"
-                  >
-                    <Box 
-                      bg={cardBg}
-                      borderRadius="2xl" 
-                      overflow="hidden"
-                      border="1px solid"
-                      borderColor={borderColor}
-                      transition="all 0.3s ease-in-out"
-                      _hover={{ 
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-                        borderColor: 'blue.300'
-                      }}
-                      h="full"
-                      display="flex"
-                      flexDirection="column"
-                    >
-                      {/* Cover Image */}
-                      {blog.cover_image_url && (
-                        <Box position="relative" overflow="hidden">
-                          <Image 
-                            src={blog.cover_image_url} 
-                            alt={blog.title} 
-                            w="100%"
-                            h="200px"
-                            objectFit="cover"
-                            transition="transform 0.3s ease-in-out"
-                            _groupHover={{ transform: 'scale(1.05)' }}
-                          />
-                          <Box
-                            position="absolute"
-                            top={0}
-                            left={0}
-                            right={0}
-                            bottom={0}
-                            bg="linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%)"
-                          />
-                        </Box>
-                      )}
-
-                      {/* Content */}
-                      <Box p={6} flex="1" display="flex" flexDirection="column">
-                        {/* Title */}
-                        <Heading 
-                          size="lg" 
-                          mb={3} 
-                          color={textColor}
-                          fontFamily="'Poppins', sans-serif"
-                          fontWeight="700"
-                          lineHeight="1.3"
-                          noOfLines={2}
-                        >
-                          {blog.title}
-                        </Heading>
-
-                        {/* Excerpt */}
-                        <Text 
-                          fontSize="md" 
-                          color={mutedColor} 
-                          mb={4}
-                          lineHeight="1.6"
-                          noOfLines={3}
-                          flex="1"
-                          fontFamily="'Poppins', sans-serif"
-                        >
-                          {blog.excerpt}
-                        </Text>
-
-                        {/* Meta Information */}
-                        <VStack align="start" spacing={3} mt="auto">
-                          <HStack spacing={4} color={mutedColor} fontSize="sm" flexWrap="wrap">
-                            <HStack spacing={1}>
-                              <FaUser size={12} />
-                              <Text fontWeight="500">
-                                {blog.author_name || 'Unknown Author'}
-                              </Text>
-                            </HStack>
-                            <HStack spacing={1}>
-                              <FaCalendarAlt size={12} />
-                              <Text>
-                                {formatDate(blog.published_at)}
-                              </Text>
-                            </HStack>
-                            {blog.category && (
-                              <HStack spacing={1}>
-                                <FaTag size={12} />
-                                <Text fontWeight="500">
-                                  {blog.category}
-                                </Text>
-                              </HStack>
-                            )}
-                          </HStack>
-
-                          {/* Tags */}
-                          {blog.tags && blog.tags.length > 0 && (
-                            <Flex wrap="wrap" gap={2}>
-                              {blog.tags.slice(0, 3).map((tag, idx) => (
-                                <Badge 
-                                  key={idx} 
-                                  colorScheme="blue" 
-                                  variant="subtle"
-                                  fontSize="xs"
-                                  px={3}
-                                  py={1}
-                                  borderRadius="full"
-                                  fontWeight="500"
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                              {blog.tags.length > 3 && (
-                                <Badge 
-                                  colorScheme="gray" 
-                                  variant="subtle"
-                                  fontSize="xs"
-                                  px={3}
-                                  py={1}
-                                  borderRadius="full"
-                                >
-                                  +{blog.tags.length - 3}
-                                </Badge>
-                              )}
-                            </Flex>
-                          )}
-                        </VStack>
-                      </Box>
-                    </Box>
-                  </Link>
-
-                  {/* Save Button */}
-                  <IconButton
-                    aria-label={savedBlogs.has(blog.slug) ? 'Unsave blog' : 'Save blog'}
-                    icon={savedBlogs.has(blog.slug) ? <FaBookmark /> : <FaRegBookmark />}
-                    color={savedBlogs.has(blog.slug) ? 'blue.500' : mutedColor}
-                    variant="ghost"
-                    size="md"
-                    position="absolute"
-                    top={4}
-                    right={4}
-                    bg={cardBg}
-                    borderRadius="full"
-                    boxShadow="md"
-                    _hover={{ 
-                      bg: 'blue.50',
-                      transform: 'scale(1.1)'
-                    }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleSaveBlog(blog.slug);
-                    }}
+            <>
+              <SimpleGrid 
+                columns={{ base: 1, sm: 2, md: 2, lg: 3 }} 
+                spacing={{ base: 4, sm: 4, md: 6, lg: 8 }}
+              >
+                {blogs.map((blog) => (
+                  <BlogCard
+                    key={blog.id}
+                    blog={blog}
+                    cardBg={cardBg}
+                    borderColor={borderColor}
+                    textColor={textColor}
+                    mutedColor={mutedColor}
+                    formatDate={formatDate}
                   />
-                </Box>
-              ))}
-            </SimpleGrid>
+                ))}
+              </SimpleGrid>
+
+              {/* Load More Button */}
+              {hasMore && (
+                <Center mt={10}>
+                  <Button
+                    onClick={loadMore}
+                    isLoading={loadingMore}
+                    loadingText="Loading..."
+                    size="lg"
+                    colorScheme="blue"
+                    variant="outline"
+                    borderRadius="full"
+                    px={8}
+                    rightIcon={<FaChevronDown />}
+                    _hover={{
+                      transform: 'translateY(-2px)',
+                      boxShadow: 'lg',
+                      bg: 'blue.50',
+                    }}
+                    transition="all 0.2s"
+                  >
+                    Load More Articles
+                  </Button>
+                </Center>
+              )}
+            </>
           )}
         </VStack>
       </Container>

@@ -8,14 +8,6 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- Jobs -->
-  <url>
-    <loc>https://growlytic.app/jobs</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-
   <!-- Free Courses -->
   <url>
     <loc>https://growlytic.app/free-courses</loc>
