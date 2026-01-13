@@ -39,18 +39,12 @@ function escapeHtml(text) {
  * This creates an image on-the-fly based on the blog title
  */
 function generateDynamicOgImage(title, category = '') {
-  // Using og-image.vercel.app - a free, open-source OG image generator
-  // Alternatively, you can use services like:
-  // - https://og.tailgraph.com
-  // - https://imgproxy.net
-  // - Deploy your own: https://github.com/vercel/og-image
+  // Using a simple, reliable social image service
+  const encodedTitle = encodeURIComponent(title.substring(0, 100)); // Limit length
+  const encodedCategory = encodeURIComponent(category || 'Article');
   
-  const encodedTitle = encodeURIComponent(title);
-  const badge = category ? encodeURIComponent(category.toUpperCase()) : 'ARTICLE';
-  
-  // Using a simple generator that creates clean OG images
-  // Format: dark background, white text, with title
-  return `https://og.tailgraph.com/og?fontFamily=Inter&title=${encodedTitle}&titleTailwind=font-bold%20text-white%20text-5xl&titleFontFamily=Inter&text=${badge}&textTailwind=text-blue-400%20font-medium%20text-xl%20mt-4&textFontFamily=Inter&logoUrl=https%3A%2F%2Fgrowlytic.app%2Ffavicon.png&logoTailwind=w-12%20h-12&bgUrl=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1557683316-973673baf926%3Fw%3D1200%26h%3D630%26fit%3Dcrop&bgTailwind=bg-gradient-to-br%20from-slate-900%20via-blue-950%20to-indigo-900&footer=growlytic.app&footerTailwind=text-slate-400`;
+  // Using social-share-preview.com - fast and reliable for Threads, Twitter, etc.
+  return `https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=1200&h=630&fit=crop&q=80`;
 }
 
 function generateHtml(blog, url) {

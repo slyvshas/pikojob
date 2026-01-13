@@ -33,9 +33,6 @@ import { generateWebSiteSchema, generateBreadcrumbSchema, injectMultipleSchemas,
 const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate }) => {
   const [generatedCover, setGeneratedCover] = useState(null);
   const [coverLoading, setCoverLoading] = useState(!blog.cover_image_url);
-  
-  // Move useColorModeValue to top level - MUST be called unconditionally
-  const skeletonBg = useColorModeValue('gray.100', 'gray.700');
 
   useEffect(() => {
     if (!blog.cover_image_url) {
@@ -81,7 +78,7 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
             overflow="hidden"
             // Fixed aspect ratio for consistent card heights
             paddingBottom={{ base: '50%', md: '52.5%' }}
-            bg={skeletonBg}
+            bg="gray.100"
             flexShrink={0}
           >
             {coverLoading ? (

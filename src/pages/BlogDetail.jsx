@@ -98,7 +98,7 @@ const BlogDetail = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('blog_posts')
-        .select('id, slug, title, content, excerpt, cover_image_url, category, author_name, author_avatar_url, published_at, created_at, tags')
+        .select('id, slug, title, content, excerpt, cover_image_url, category, author_name, published_at, created_at, tags')
         .eq('slug', slug)
         .single();
       if (error) setError(error.message);

@@ -279,18 +279,18 @@ export async function generateBlogCover({
     const titleY = badgeY + badgeHeight + 45;
     const maxTitleWidth = cardWidth - 90;
     
-    // Calculate optimal font size based on title length
-    let fontSize = 54;
-    if (title.length > 80) fontSize = 38;
-    else if (title.length > 60) fontSize = 42;
-    else if (title.length > 40) fontSize = 48;
+    // Calculate optimal font size based on title length (INCREASED)
+    let fontSize = 72;
+    if (title.length > 80) fontSize = 52;
+    else if (title.length > 60) fontSize = 58;
+    else if (title.length > 40) fontSize = 64;
     
     ctx.font = `800 ${fontSize}px Inter, system-ui, sans-serif`;
     ctx.textBaseline = 'top';
     
     const lines = wrapText(ctx, title, maxTitleWidth);
-    const lineHeight = fontSize * 1.25;
-    const maxLines = 4;
+    const lineHeight = fontSize * 1.3;
+    const maxLines = 3;
     
     // Draw each line with effects
     lines.slice(0, maxLines).forEach((line, index) => {
