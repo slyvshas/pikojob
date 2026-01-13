@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -18,15 +18,16 @@ import {
   SkeletonText,
   Stack,
 } from '@chakra-ui/react'
-import { motion } from 'framer-motion'
 import { FaGraduationCap, FaNewspaper, FaLightbulb, FaStar, FaArrowRight, FaBookOpen, FaRocket, FaSearch } from 'react-icons/fa'
 import { supabase } from '../lib/supabase'
 import { generateCoverForBlog } from '../utils/generateBlogCover'
 import { generateOrganizationSchema, generateWebSiteSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData'
 
-const MotionBox = motion(Box)
-const MotionHeading = motion(Heading)
-const MotionText = motion(Text)
+// Lazy load framer-motion to reduce initial bundle size
+let motion = null;
+let MotionBox = Box;
+let MotionHeading = Heading;
+let MotionText = Text;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -166,7 +167,8 @@ const Home = () => {
               objectFit="cover"
               transition="transform 0.4s ease"
               _groupHover={{ transform: 'scale(1.05)' }}
-              loading="lazy"
+              loading={blog === featuredBlogs[0] ? "eager" : "lazy"}
+              fetchpriority={blog === featuredBlogs[0] ? "high" : "auto"}
             />
           )}
           <Box 

@@ -15,9 +15,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor code
+          // Split vendor code for better caching
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'chakra-vendor': ['@chakra-ui/react', '@emotion/react', '@emotion/styled', 'framer-motion'],
+          'chakra-vendor': ['@chakra-ui/react', '@emotion/react', '@emotion/styled'],
+          'framer': ['framer-motion'], // Separate framer-motion for lazy loading
           'icons': ['react-icons'],
           'supabase': ['@supabase/supabase-js'],
         },
@@ -25,13 +26,19 @@ export default defineConfig({
     },
     // Optimize chunk size
     chunkSizeWarningLimit: 1000,
-    // Enable minification
+    // Enable minification with esbuild (faster than terser)
     minify: 'esbuild',
-    // Enable source maps for debugging (disable in production if needed)
+    // Disable source maps in production for smaller bundle
     sourcemap: false,
+    // Target modern browsers for smaller output
+    target: 'esnext',
+    // Enable CSS code splitting
+    cssCodeSplit: true,
   },
   // Optimize dependencies
   optimizeDeps: {
     include: ['react', 'react-dom', '@chakra-ui/react', '@supabase/supabase-js'],
+    // Exclude framer-motion from pre-bundling for on-demand loading
+    exclude: ['framer-motion'],
   },
 })

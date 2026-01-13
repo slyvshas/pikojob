@@ -48,16 +48,23 @@
     <meta name="twitter:description" content="Career resources, tech articles, and professional development guides to advance your career." />
     <meta name="twitter:image" content="https://growlytic.app/og-image.png" />
     
-    <!-- Fonts - Optimized for performance -->
+    <!-- Fonts - Optimized for performance with font-display:swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" /></noscript>
+    <!-- Preload critical Inter font for faster initial render -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <!-- Load Poppins deferred as it's not critical for FCP -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    </noscript>
     
     <title>Growlytic</title>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Preload the main module for faster script execution -->
+    <link rel="modulepreload" href="/src/main.jsx" />
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
