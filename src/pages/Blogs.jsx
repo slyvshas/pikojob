@@ -95,9 +95,7 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
             ) : coverImage ? (
               <>
                 <Image 
-                  src={blog.cover_image_url ? getOptimizedImageUrl(blog.cover_image_url, { width: 800, quality: 80, format: 'webp' }) : coverImage}
-                  srcSet={blog.cover_image_url ? generateSrcSet(blog.cover_image_url, [400, 600, 800, 1200]) : undefined}
-                  sizes={getImageSizes('blog-card')}
+                  src={coverImage}
                   alt={blog.title}
                   position="absolute"
                   top={0}
@@ -107,8 +105,8 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
                   objectFit="cover"
                   loading="lazy"
                   decoding="async"
-                  htmlWidth={1200}
-                  htmlHeight={630}
+                  width="1200"
+                  height="630"
                   transition="transform 0.3s ease-in-out"
                   _groupHover={{ transform: 'scale(1.05)' }}
                 />
