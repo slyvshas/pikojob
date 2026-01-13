@@ -140,7 +140,7 @@ const Home = () => {
         boxShadow="lg"
         overflow="hidden"
         cursor="pointer"
-        onClick={() => navigate(`/blogs/${blog.slug}`)}
+        onClick={() => navigate(`/blogs/${blog.category?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized'}/${blog.slug}`)}
         h="full"
         display="flex"
         flexDirection="column"

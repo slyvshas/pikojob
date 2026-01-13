@@ -33,6 +33,9 @@ import { generateWebSiteSchema, generateBreadcrumbSchema, injectMultipleSchemas,
 const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate }) => {
   const [generatedCover, setGeneratedCover] = useState(null);
   const [coverLoading, setCoverLoading] = useState(!blog.cover_image_url);
+  
+  // Compute category slug once to avoid re-renders
+  const categorySlug = (blog.category?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized');
 
   useEffect(() => {
     if (!blog.cover_image_url) {
@@ -41,7 +44,10 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
           setGeneratedCover(dataUrl);
           setCoverLoading(false);
         })
-        .catch(() => setCoverLoading(false));
+        .catch((err) => {
+          console.error('Error generating cover:', err);
+          setCoverLoading(false);
+        });
     }
   }, [blog.title, blog.category, blog.cover_image_url]);
 
@@ -51,7 +57,7 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
     <Box position="relative" h="full">
       <Link
         as={RouterLink}
-        to={`/blogs/${blog.slug}`}
+        to={`/blogs/${categorySlug}/${blog.slug}`}
         _hover={{ textDecoration: 'none' }}
         display="block"
         h="full"
@@ -78,7 +84,7 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
             overflow="hidden"
             // Fixed aspect ratio for consistent card heights
             paddingBottom={{ base: '50%', md: '52.5%' }}
-            bg="gray.100"
+            bg={coverLoading ? "gray.200" : "gray.100"}
             flexShrink={0}
           >
             {coverLoading ? (
@@ -88,6 +94,9 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
                 left={0}
                 width="100%"
                 height="100%"
+                startColor="gray.100"
+                endColor="gray.300"
+                speed={0.8}
               />
             ) : coverImage ? (
               <>
@@ -101,9 +110,6 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
                   height="100%"
                   objectFit="cover"
                   loading="lazy"
-                  decoding="async"
-                  width="1200"
-                  height="630"
                   transition="transform 0.3s ease-in-out"
                   _groupHover={{ transform: 'scale(1.05)' }}
                 />
@@ -207,12 +213,13 @@ const Blogs = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const toast = useToast();
 
-  // Theme colors
+  // Theme colors - ALL hooks must be at top level
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const textColor = useColorModeValue('gray.800', 'white');
   const mutedColor = useColorModeValue('gray.600', 'gray.400');
+  const inputBg = useColorModeValue('white', 'gray.700');
 
   const fetchBlogs = async (pageNum = 0, append = false, category = 'All', search = '') => {
     if (append) {
@@ -471,7 +478,7 @@ Skills and professional development coverage to advance your career.
                   value={searchQuery}
                   onChange={handleSearchChange}
                   borderRadius="lg"
-                  bg={useColorModeValue('white', 'gray.700')}
+                  bg={inputBg}
                   _focus={{
                     borderColor: 'blue.400',
                     boxShadow: '0 0 0 1px #3182ce',

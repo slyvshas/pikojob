@@ -160,8 +160,8 @@ export default async function handler(request, context) {
     return context.next();
   }
   
-  // Check if this is a blog post URL
-  const blogMatch = url.pathname.match(/^\/blogs\/([^\/]+)\/?$/);
+  // Check if this is a blog post URL with new structure: /blogs/category/slug
+  const blogMatch = url.pathname.match(/^\/blogs\/([^\/]+)\/([^\/]+)\/?$/);
   
   if (!blogMatch) {
     // Return default OG tags for non-blog pages
@@ -170,7 +170,8 @@ export default async function handler(request, context) {
     });
   }
   
-  const slug = blogMatch[1];
+  const category = blogMatch[1];
+  const slug = blogMatch[2];
   
   try {
     // Fetch blog data from Supabase

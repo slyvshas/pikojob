@@ -35,7 +35,7 @@ import { generateCoverForBlog } from '../utils/generateBlogCover';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
 const BlogDetail = () => {
-  const { slug } = useParams();
+  const { slug, category } = useParams(); // Now extracting both slug and category
   const navigate = useNavigate();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -163,6 +163,7 @@ const BlogDetail = () => {
       const breadcrumbSchema = generateBreadcrumbSchema([
         { name: 'Home', url: 'https://growlytic.app' },
         { name: 'Blogs', url: 'https://growlytic.app/blogs' },
+        { name: blog.category || 'Uncategorized', url: `https://growlytic.app/blogs/${blog.category?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized'}` },
         { name: blog.title, url: window.location.href }
       ]);
 
@@ -194,7 +195,7 @@ const BlogDetail = () => {
     const relatedBlogCard = `
       <div style="margin: 48px 0; padding: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);">
         <p style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 1px;">✨ You Might Also Like</p>
-        <a href="/blogs/${relatedBlog.slug}" style="display: block; text-decoration: none; color: white;">
+        <a href="/blogs/${relatedBlog.category?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized'}/${relatedBlog.slug}" style="display: block; text-decoration: none; color: white;">
           <h3 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 700; color: white; line-height: 1.3;">${relatedBlog.title}</h3>
           ${relatedBlog.excerpt ? `<p style="margin: 0 0 16px 0; font-size: 16px; color: rgba(255,255,255,0.9); line-height: 1.6;">${relatedBlog.excerpt}</p>` : ''}
           <div style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: white; color: #667eea; border-radius: 8px; font-weight: 600; font-size: 16px; transition: transform 0.2s;">
@@ -1042,7 +1043,7 @@ const BlogDetail = () => {
                     borderRadius="lg"
                     overflow="hidden"
                     cursor="pointer"
-                    onClick={() => navigate(`/blogs/${relatedBlog.slug}`)}
+                    onClick={() => navigate(`/blogs/${relatedBlog.category?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized'}/${relatedBlog.slug}`)}
                     transition="all 0.2s"
                     _hover={{
                       transform: 'translateY(-4px)',

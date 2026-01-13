@@ -88,7 +88,7 @@ function AppContent() {
               <Route path="/free-courses" element={<FreeCourses />} />
               <Route path="/free-books" element={<FreeBooks />} />
               <Route path="/blogs" element={<Blogs />} />
-              <Route path="/blogs/:slug" element={<BlogDetail />} />
+              <Route path="/blogs/:category/:slug" element={<BlogDetail />} />
               <Route path="/about" element={<AboutUs />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
