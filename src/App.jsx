@@ -12,19 +12,16 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 
 // Lazy load non-critical pages for better initial load performance
 const FreeCoursesDashboard = lazy(() => import('./pages/Admin/FreeCoursesDashboard.jsx'));
-const FreeBooksDashboard = lazy(() => import('./pages/Admin/FreeBooksDashboard.jsx'));
 const FreeCourses = lazy(() => import('./pages/FreeCourses.jsx'));
 const FreeBooks = lazy(() => import('./pages/FreeBooks.jsx'));
 const BlogManagement = lazy(() => import('./pages/Admin/BlogManagement.jsx'));
 const Blogs = lazy(() => import('./pages/Blogs.jsx'));
 const BlogDetail = lazy(() => import('./pages/BlogDetail.jsx'));
-const OpportunitiesDashboard = lazy(() => import('./pages/Admin/OpportunitiesDashboard.jsx'));
 const AboutUs = lazy(() => import('./pages/AboutUs.jsx'));
 const Contact = lazy(() => import('./pages/Contact.jsx'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy.jsx'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService.jsx'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy.jsx'));
-const ContactMessagesDashboard = lazy(() => import('./pages/Admin/ContactMessagesDashboard.jsx'));
 const AdminLogin = lazy(() => import('./pages/Admin/AdminLogin.jsx'));
 
 // Loading fallback component
@@ -101,10 +98,7 @@ function AppContent() {
               <Route path="/admin" element={<AdminLogin />} />
               {/* Protected Admin Routes */}
               <Route path="/admin/free-courses" element={<ProtectedRoute><FreeCoursesDashboard /></ProtectedRoute>} />
-              <Route path="/admin/free-books" element={<ProtectedRoute><FreeBooksDashboard /></ProtectedRoute>} />
               <Route path="/admin/blog-management" element={<ProtectedRoute><BlogManagement /></ProtectedRoute>} />
-              <Route path="/admin/opportunities" element={<ProtectedRoute><OpportunitiesDashboard /></ProtectedRoute>} />
-              <Route path="/admin/contact-messages" element={<ProtectedRoute><ContactMessagesDashboard /></ProtectedRoute>} />
             </Routes>
           </Suspense>
         </Container>
