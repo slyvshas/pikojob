@@ -27,7 +27,6 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { FaCalendarAlt, FaUser, FaChevronDown, FaSearch } from 'react-icons/fa';
 import { generateCoverForBlog } from '../utils/generateBlogCover';
-import { getOptimizedImageUrl, generateSrcSet, getImageSizes } from '../utils/imageOptimization';
 import { generateWebSiteSchema, generateBreadcrumbSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData';
 
 // BlogCard component with auto-generated cover support
