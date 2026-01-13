@@ -22,6 +22,7 @@ import { motion } from 'framer-motion'
 import { FaGraduationCap, FaNewspaper, FaLightbulb, FaStar, FaArrowRight, FaBookOpen, FaRocket, FaSearch } from 'react-icons/fa'
 import { supabase } from '../lib/supabase'
 import { generateCoverForBlog } from '../utils/generateBlogCover'
+import { generateOrganizationSchema, generateWebSiteSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData'
 
 const MotionBox = motion(Box)
 const MotionHeading = motion(Heading)
@@ -50,7 +51,7 @@ const Home = () => {
   
   const cardBg = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.100', 'gray.700')
-  const mutedColor = useColorModeValue('gray.600', 'gray.400')
+  const mutedColor = useColorModeValue('gray.700', 'gray.300')
   const heroBg = useColorModeValue(
     'radial-gradient(circle at top right, rgba(66, 153, 225, 0.1), transparent 40%), radial-gradient(circle at bottom left, rgba(128, 90, 213, 0.1), transparent 40%)',
     'radial-gradient(circle at top right, rgba(66, 153, 225, 0.1), transparent 40%), radial-gradient(circle at bottom left, rgba(128, 90, 213, 0.1), transparent 40%)'
@@ -62,6 +63,16 @@ const Home = () => {
 
   useEffect(() => {
     fetchFeaturedContent()
+    
+    // Inject structured data for homepage SEO
+    const organizationSchema = generateOrganizationSchema()
+    const websiteSchema = generateWebSiteSchema()
+    injectMultipleSchemas([organizationSchema, websiteSchema])
+
+    // Cleanup on unmount
+    return () => {
+      removeStructuredData()
+    }
   }, [])
 
   const fetchFeaturedContent = async () => {
@@ -74,16 +85,25 @@ const Home = () => {
           .limit(3),
         supabase
           .from('free_courses')
-          .select('id, title, provider, course_url, category')
+          .select('id, title, provider, link, category')
           .order('created_at', { ascending: false })
           .limit(4)
       ])
 
       console.log('Blogs data:', blogsRes.data)
+      console.log('Blogs error:', blogsRes.error)
       console.log('Courses data:', coursesRes.data)
+      console.log('Courses error:', coursesRes.error)
 
       if (blogsRes.data) setFeaturedBlogs(blogsRes.data)
       if (coursesRes.data) setFeaturedCourses(coursesRes.data)
+      
+      if (coursesRes.error) {
+        console.error('Error fetching courses:', coursesRes.error)
+      }
+      if (blogsRes.error) {
+        console.error('Error fetching blogs:', blogsRes.error)
+      }
     } catch (error) {
       console.error('Error fetching featured content:', error)
     } finally {
@@ -173,7 +193,7 @@ const Home = () => {
           </Text>
           <HStack pt={2} justify="space-between" color={mutedColor} fontSize="sm">
              <Text>{new Date(blog.created_at).toLocaleDateString()}</Text>
-             <Text color="blue.500" fontWeight="bold" display="flex" alignItems="center">
+             <Text color="blue.700" fontWeight="bold" display="flex" alignItems="center">
                Read more <Icon as={FaArrowRight} ml={1} w={3} h={3}/>
              </Text>
           </HStack>
@@ -217,11 +237,14 @@ const Home = () => {
       </Text>
       <Button
         size="md"
-        colorScheme="blue"
-        variant="ghost"
+        bg="blue.600"
+        color="white"
+        variant="solid"
         width="full"
         rightIcon={<FaArrowRight />}
-        onClick={() => window.open(course.course_url, '_blank')}
+        onClick={() => window.open(course.link, '_blank')}
+        _hover={{ bg: 'blue.700' }}
+        aria-label={`Start learning ${course.title}`}
       >
         Start Learning
       </Button>
@@ -247,7 +270,8 @@ const Home = () => {
             mx="auto"
           >
             <Badge 
-              colorScheme="blue" 
+              bg="blue.600"
+              color="white"
               variant="solid" 
               px={4} 
               py={1.5} 
@@ -256,7 +280,7 @@ const Home = () => {
               mb={6}
               boxShadow="lg"
             >
-              🚀 Launch Your Career Today
+              🚀 LAUNCH YOUR CAREER TODAY
             </Badge>
             <Heading
               as="h1"
@@ -288,27 +312,32 @@ const Home = () => {
             >
               <Button
                 size="lg"
-                colorScheme="blue"
+                bg="blue.600"
+                color="white"
                 px={8}
                 height="3.5rem"
                 fontSize="md"
                 rightIcon={<FaArrowRight />}
                 onClick={() => navigate('/free-courses')}
-                _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
+                _hover={{ bg: 'blue.700', transform: 'translateY(-2px)', boxShadow: 'lg' }}
+                aria-label="Browse free courses"
               >
                 Start Learning
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                colorScheme="gray"
+                borderColor="blue.600"
+                borderWidth="2px"
+                color="blue.700"
                 px={8}
                 height="3.5rem"
                 fontSize="md"
                 leftIcon={<FaNewspaper />}
                 onClick={() => navigate('/blogs')}
                 bg={cardBg}
-                _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
+                _hover={{ bg: 'blue.50', transform: 'translateY(-2px)', boxShadow: 'md' }}
+                aria-label="Read blog articles"
               >
                 Read Articles
               </Button>
@@ -317,55 +346,7 @@ const Home = () => {
         </Container>
       </Box>
 
-      <Container maxW="container.xl" py={12} mt={-20} position="relative" zIndex={2}>
-        {/* Quick Stats / Pathways - Floating Cards */}
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={24}>
-          <MotionBox
-            whileHover={{ y: -4, boxShadow: 'lg' }}
-            p={6}
-            bg={cardBg}
-            borderRadius="xl"
-            boxShadow="sm"
-            cursor="pointer"
-            onClick={() => navigate('/free-courses')}
-            border="1px solid"
-            borderColor={borderColor}
-            transition="all 0.3s"
-          >
-            <HStack spacing={4} mb={3}>
-               <Box p={2.5} bg="blue.50" borderRadius="lg" color="blue.500" _dark={{ bg: 'blue.900' }}>
-                 <Icon as={FaBookOpen} boxSize={5} />
-               </Box>
-               <Heading size="md">Free Courses</Heading>
-            </HStack>
-            <Text color={mutedColor} fontSize="sm">
-              Access thousands of free courses from top platforms and universities.
-            </Text>
-          </MotionBox>
-           <MotionBox
-            whileHover={{ y: -4, boxShadow: 'lg' }}
-            p={6}
-            bg={cardBg}
-            borderRadius="xl"
-            boxShadow="sm"
-            cursor="pointer"
-            onClick={() => navigate('/blogs')}
-            border="1px solid"
-            borderColor={borderColor}
-            transition="all 0.3s"
-          >
-             <HStack spacing={4} mb={3}>
-               <Box p={2.5} bg="purple.50" borderRadius="lg" color="purple.500" _dark={{ bg: 'purple.900' }}>
-                 <Icon as={FaNewspaper} boxSize={5} />
-               </Box>
-               <Heading size="md">Career Blog</Heading>
-            </HStack>
-            <Text color={mutedColor} fontSize="sm">
-               Stay updated with the latest insights, guides, and career advice.
-            </Text>
-          </MotionBox>
-        </SimpleGrid>
-
+      <Container maxW="container.xl" py={12} position="relative" zIndex={2}>
         {/* Featured Blogs Section */}
         <Box mb={24}>
           <Flex 
@@ -381,11 +362,14 @@ const Home = () => {
              </Box>
              <Button
               variant="link"
-              colorScheme="blue"
+              color="blue.700"
+              fontWeight="600"
               rightIcon={<FaArrowRight />}
               onClick={() => navigate('/blogs')}
               fontSize={{ base: 'sm', md: 'md' }}
               flexShrink={0}
+              _hover={{ color: 'blue.800' }}
+              aria-label="View all blog articles"
             >
               View All Articles
             </Button>
@@ -404,61 +388,6 @@ const Home = () => {
             <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={10}>
               {featuredBlogs.map((blog) => (
                 <BlogCard key={blog.id} blog={blog} />
-              ))}
-            </SimpleGrid>
-          )}
-        </Box>
-
-        {/* Featured Courses Section */}
-        <Box mb={24} position="relative">
-          <Box 
-            position="absolute" 
-            top="-20px" 
-            left="-20px" 
-            width="100px" 
-            height="100px" 
-            bg="blue.100" 
-            borderRadius="full" 
-            filter="blur(40px)" 
-            opacity={0.5} 
-            zIndex={-1} 
-          />
-          <Flex 
-            justify="space-between" 
-            align={{ base: 'flex-start', md: 'center' }} 
-            mb={10}
-            direction={{ base: 'column', md: 'row' }}
-            gap={{ base: 4, md: 0 }}
-          >
-            <Box>
-                <Heading size="lg" mb={2}>Popular Free Courses</Heading>
-                <Text color={mutedColor}>Top rated courses you can start today</Text>
-             </Box>
-            <Button
-              variant="link"
-              colorScheme="blue"
-              rightIcon={<FaArrowRight />}
-              onClick={() => navigate('/free-courses')}
-              fontSize={{ base: 'sm', md: 'md' }}
-              flexShrink={0}
-            >
-              Browse Library
-            </Button>
-          </Flex>
-
-          {loading ? (
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={6}>
-              {[1, 2, 3, 4].map((i) => (
-                <Box key={i} p={5} bg={cardBg} borderRadius="xl">
-                  <Skeleton height="40px" width="40px" borderRadius="lg" mb={4} />
-                  <SkeletonText noOfLines={3} />
-                </Box>
-              ))}
-            </SimpleGrid>
-          ) : (
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={6}>
-              {featuredCourses.map((course) => (
-                <CourseCard key={course.id} course={course} />
               ))}
             </SimpleGrid>
           )}
@@ -526,6 +455,7 @@ const Home = () => {
             >
               <Box
                 as="iframe"
+                title="Newsletter signup form"
                 src="https://embeds.beehiiv.com/e879c9bf-696b-4582-9c45-9b926a704ba9?slim=true"
                 data-test-id="beehiiv-embed"
                 height="70"

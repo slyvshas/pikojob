@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:analyze": "vite build --mode analyze",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -20,11 +21,7 @@
     "@tiptap/extension-underline": "^2.26.0",
     "@tiptap/react": "^2.26.0",
     "@tiptap/starter-kit": "^2.26.0",
-    "body-parser": "^2.2.0",
-    "dotenv": "^17.2.0",
-    "express": "^5.1.0",
     "framer-motion": "^10.18.0",
-    "node-fetch": "^2.7.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-ga4": "^2.1.0",

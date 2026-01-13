@@ -60,8 +60,9 @@ const Opportunities = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('opportunities')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('id, title, description, link, type, organization, deadline, category, created_at')
+        .order('created_at', { ascending: false })
+        .limit(300); // Reasonable limit for better initial load
       if (error) setError(error.message);
       else setOpportunities(data);
       setLoading(false);

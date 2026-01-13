@@ -30,6 +30,7 @@ import {
 import { FaArrowLeft, FaClock, FaShare, FaTwitter, FaFacebookF, FaLinkedinIn, FaWhatsapp, FaLink, FaEnvelope, FaTextHeight, FaList } from 'react-icons/fa';
 import { normalizeContent, calculateReadingTime } from '../utils/blogContentNormalizer';
 import { setBlogMetaTags, resetMetaTags, getSocialShareUrls, openShareWindow } from '../utils/socialMeta';
+import { generateArticleSchema, generateBreadcrumbSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData';
 import { generateCoverForBlog } from '../utils/generateBlogCover';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
@@ -97,7 +98,7 @@ const BlogDetail = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select('id, slug, title, content, excerpt, cover_image_url, category, author_name, author_avatar_url, published_at, created_at, tags')
         .eq('slug', slug)
         .single();
       if (error) setError(error.message);
@@ -122,23 +123,57 @@ const BlogDetail = () => {
     fetchBlog();
   }, [slug]);
 
-  // Set OpenGraph meta tags when blog loads
+  // Set OpenGraph meta tags and structured data when blog loads
   useEffect(() => {
     if (blog) {
+      // Ensure image URL is absolute for social sharing
+      let imageUrl = blog.cover_image_url;
+      if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = `https://growlytic.app${imageUrl}`;
+      }
+      // Fallback to dynamic OG image if no cover
+      if (!imageUrl) {
+        imageUrl = 'https://growlytic.app/og-image.png';
+      }
+
+      // Set social meta tags
       setBlogMetaTags({
         title: blog.title,
         description: blog.excerpt || blog.title,
-        image: blog.cover_image_url,
+        image: imageUrl,
+        url: window.location.href,
+        author: blog.author_name || 'Growlytic Team',
+        publishedDate: blog.published_at,
+        category: blog.category || 'Article',
+      });
+
+      // Generate and inject structured data for SEO
+      const articleSchema = generateArticleSchema({
+        title: blog.title,
+        description: blog.excerpt || blog.title,
+        image: blog.cover_image_url || 'https://growlytic.app/og-image.png',
         url: window.location.href,
         author: blog.author_name,
         publishedDate: blog.published_at,
+        modifiedDate: blog.updated_at || blog.published_at,
         category: blog.category,
+        tags: blog.tags
       });
+
+      const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', url: 'https://growlytic.app' },
+        { name: 'Blogs', url: 'https://growlytic.app/blogs' },
+        { name: blog.title, url: window.location.href }
+      ]);
+
+      // Inject both schemas
+      injectMultipleSchemas([articleSchema, breadcrumbSchema]);
     }
 
-    // Reset meta tags when leaving the page
+    // Reset meta tags and remove structured data when leaving the page
     return () => {
       resetMetaTags();
+      removeStructuredData();
     };
   }, [blog]);
 
@@ -147,6 +182,37 @@ const BlogDetail = () => {
     if (!blog || !blog.content) return '';
     return normalizeContent(blog.content);
   }, [blog]);
+
+  // Insert related blog card in the middle of content
+  const contentWithRelatedBlog = useMemo(() => {
+    if (!normalizedContent || relatedBlogs.length === 0) return normalizedContent;
+
+    // Get the first related blog
+    const relatedBlog = relatedBlogs[0];
+    
+    // Create related blog card HTML
+    const relatedBlogCard = `
+      <div style="margin: 48px 0; padding: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);">
+        <p style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 1px;">✨ You Might Also Like</p>
+        <a href="/blogs/${relatedBlog.slug}" style="display: block; text-decoration: none; color: white;">
+          <h3 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 700; color: white; line-height: 1.3;">${relatedBlog.title}</h3>
+          ${relatedBlog.excerpt ? `<p style="margin: 0 0 16px 0; font-size: 16px; color: rgba(255,255,255,0.9); line-height: 1.6;">${relatedBlog.excerpt}</p>` : ''}
+          <div style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: white; color: #667eea; border-radius: 8px; font-weight: 600; font-size: 16px; transition: transform 0.2s;">
+            Read Article →
+          </div>
+        </a>
+      </div>
+    `;
+
+    // Find the middle of the content (split by paragraphs)
+    const paragraphs = normalizedContent.split('</p>');
+    const middleIndex = Math.floor(paragraphs.length / 2);
+    
+    // Insert the related blog card in the middle
+    paragraphs.splice(middleIndex, 0, relatedBlogCard);
+    
+    return paragraphs.join('</p>');
+  }, [normalizedContent, relatedBlogs]);
 
   // Generate cover image if blog has no cover (defer to not block initial render)
   useEffect(() => {
@@ -169,9 +235,9 @@ const BlogDetail = () => {
 
   // Extract headings for TOC
   useEffect(() => {
-    if (blog && normalizedContent) {
+    if (blog && contentWithRelatedBlog) {
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = normalizedContent;
+      tempDiv.innerHTML = contentWithRelatedBlog;
       const headingElements = tempDiv.querySelectorAll('h2, h3');
       const extractedHeadings = Array.from(headingElements).map((heading, index) => {
         const id = heading.id || `heading-${index}`;
@@ -184,7 +250,7 @@ const BlogDetail = () => {
       });
       setHeadings(extractedHeadings);
     }
-  }, [blog, normalizedContent]);
+  }, [blog, contentWithRelatedBlog]);
 
   const handleShare = async (platform) => {
     const shareUrls = getSocialShareUrls(
@@ -952,7 +1018,7 @@ const BlogDetail = () => {
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
             }}
-            dangerouslySetInnerHTML={{ __html: normalizedContent }}
+            dangerouslySetInnerHTML={{ __html: contentWithRelatedBlog }}
           />
 
           {/* Related Blogs Section */}

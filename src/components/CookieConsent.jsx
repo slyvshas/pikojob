@@ -55,27 +55,28 @@ const CookieConsent = () => {
       borderColor={borderColor}
       boxShadow="0 -4px 20px rgba(0,0,0,0.1)"
       zIndex={9999}
-      py={{ base: 4, md: 5 }}
+      py={{ base: 3, md: 5 }}
+      px={{ base: 3, md: 0 }}
     >
       <Container maxW="container.xl">
         <Flex
           direction={{ base: 'column', md: 'row' }}
           align={{ base: 'stretch', md: 'center' }}
           justify="space-between"
-          gap={{ base: 4, md: 6 }}
+          gap={{ base: 3, md: 6 }}
         >
           {/* Cookie Icon & Text */}
-          <Flex align="start" gap={3} flex="1">
+          <Flex align="start" gap={{ base: 2, md: 3 }} flex="1">
             <Icon
               as={FaCookieBite}
-              boxSize={{ base: 6, md: 7 }}
+              boxSize={{ base: 5, md: 7 }}
               color="blue.500"
               mt={1}
               flexShrink={0}
             />
             <Box>
               <Text
-                fontSize={{ base: 'sm', md: 'md' }}
+                fontSize={{ base: 'xs', md: 'md' }}
                 color={textColor}
                 lineHeight="tall"
               >
@@ -83,11 +84,12 @@ const CookieConsent = () => {
                 <Link
                   as={RouterLink}
                   to="/cookies"
-                  color="blue.500"
+                  color="blue.600"
                   fontWeight="600"
                   _hover={{ textDecoration: 'underline' }}
+                  aria-label="Learn more about our cookie policy"
                 >
-                  Learn more
+                  Learn more about our cookie policy
                 </Link>
               </Text>
             </Box>
@@ -95,7 +97,7 @@ const CookieConsent = () => {
 
           {/* Action Buttons */}
           <HStack
-            spacing={3}
+            spacing={{ base: 2, md: 3 }}
             flexShrink={0}
             align="stretch"
             w={{ base: 'full', md: 'auto' }}
@@ -103,7 +105,7 @@ const CookieConsent = () => {
             <Button
               variant="outline"
               colorScheme="gray"
-              size={{ base: 'md', md: 'md' }}
+              size={{ base: 'sm', md: 'md' }}
               onClick={handleDecline}
               flex={{ base: 1, md: 'none' }}
               minW={{ md: '100px' }}
@@ -112,7 +114,7 @@ const CookieConsent = () => {
             </Button>
             <Button
               colorScheme="blue"
-              size={{ base: 'md', md: 'md' }}
+              size={{ base: 'sm', md: 'md' }}
               onClick={handleAccept}
               flex={{ base: 1, md: 'none' }}
               minW={{ md: '120px' }}

@@ -81,16 +81,30 @@ function generateHtml(blog, url) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${image}">
+  <meta property="og:image:secure_url" content="${image}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${title}">
   <meta property="og:site_name" content="Growlytic">
+  <meta property="og:locale" content="en_US">
   ${publishedDate ? `<meta property="article:published_time" content="${publishedDate}">` : ''}
   ${author ? `<meta property="article:author" content="${author}">` : ''}
+  ${blog?.category ? `<meta property="article:section" content="${escapeHtml(blog.category)}">` : ''}
   
-  <!-- Twitter -->
+  <!-- Twitter / X.com -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="${url}">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${image}">
+  <meta name="twitter:image:alt" content="${title}">
+  <meta name="twitter:site" content="@growlytic">
+  <meta name="twitter:creator" content="@growlytic">${author ? `
+  <meta name="twitter:label1" content="Written by">
+  <meta name="twitter:data1" content="${author}">` : ''}${blog?.category ? `
+  <meta name="twitter:label2" content="Filed under">
+  <meta name="twitter:data2" content="${escapeHtml(blog.category)}">` : ''}>
   
   <!-- Canonical -->
   <link rel="canonical" href="${url}">
@@ -121,14 +135,20 @@ function generateDefaultHtml(url) {
   <meta property="og:title" content="Growlytic - Career Resources & Tech Articles">
   <meta property="og:description" content="Career resources, tech articles, and professional development guides to advance your career.">
   <meta property="og:image" content="https://growlytic.app/og-image.png">
+  <meta property="og:image:secure_url" content="https://growlytic.app/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:site_name" content="Growlytic">
   
-  <!-- Twitter -->
+  <!-- Twitter / X.com -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="${url}">
   <meta name="twitter:title" content="Growlytic - Career Resources & Tech Articles">
   <meta name="twitter:description" content="Career resources, tech articles, and professional development guides to advance your career.">
   <meta name="twitter:image" content="https://growlytic.app/og-image.png">
+  <meta name="twitter:site" content="@growlytic">
+  <meta name="twitter:creator" content="@growlytic">
 </head>
 <body>
   <h1>Growlytic</h1>

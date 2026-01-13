@@ -56,6 +56,8 @@ const Navbar = () => {
           fontSize="2xl"
           fontWeight="800" 
           letterSpacing="tight"
+          color="black"
+          _dark={{ color: 'white' }}
           _hover={{ 
             textDecoration: 'none',
             color: 'blue.500',

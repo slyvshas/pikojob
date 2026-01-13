@@ -27,6 +27,8 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { FaCalendarAlt, FaUser, FaChevronDown, FaSearch } from 'react-icons/fa';
 import { generateCoverForBlog } from '../utils/generateBlogCover';
+import { getOptimizedImageUrl, generateSrcSet, getImageSizes } from '../utils/imageOptimization';
+import { generateWebSiteSchema, generateBreadcrumbSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData';
 
 // BlogCard component with auto-generated cover support
 const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate }) => {
@@ -94,7 +96,9 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
             ) : coverImage ? (
               <>
                 <Image 
-                  src={coverImage} 
+                  src={blog.cover_image_url ? getOptimizedImageUrl(blog.cover_image_url, { width: 800, quality: 80, format: 'webp' }) : coverImage}
+                  srcSet={blog.cover_image_url ? generateSrcSet(blog.cover_image_url, [400, 600, 800, 1200]) : undefined}
+                  sizes={getImageSizes('blog-card')}
                   alt={blog.title}
                   position="absolute"
                   top={0}
@@ -103,6 +107,7 @@ const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate
                   height="100%"
                   objectFit="cover"
                   loading="lazy"
+                  decoding="async"
                   htmlWidth={1200}
                   htmlHeight={630}
                   transition="transform 0.3s ease-in-out"
@@ -227,7 +232,7 @@ const Blogs = () => {
 
     let query = supabase
       .from('blog_posts')
-      .select('*', { count: 'exact' })
+      .select('id, slug, title, excerpt, cover_image_url, category, created_at, published_at, author_name', { count: 'exact' })
       .order('published_at', { ascending: false });
 
     // Apply category filter
@@ -258,13 +263,14 @@ const Blogs = () => {
     setLoadingMore(false);
   };
 
-  // Fetch unique categories
+  // Fetch unique categories (optimized with distinct)
   const fetchCategories = async () => {
     const { data, error } = await supabase
       .from('blog_posts')
       .select('category')
       .not('category', 'is', null)
-      .order('category');
+      .order('category')
+      .limit(100); // Limit fetch for better performance
 
     if (!error && data) {
       // Get unique categories and limit to 5
@@ -276,6 +282,19 @@ const Blogs = () => {
   useEffect(() => {
     fetchBlogs(0, false, selectedCategory, searchQuery);
     fetchCategories();
+
+    // Inject structured data for blogs page
+    const websiteSchema = generateWebSiteSchema();
+    const breadcrumbSchema = generateBreadcrumbSchema([
+      { name: 'Home', url: 'https://growlytic.app' },
+      { name: 'Blogs', url: 'https://growlytic.app/blogs' }
+    ]);
+    injectMultipleSchemas([websiteSchema, breadcrumbSchema]);
+
+    // Cleanup on unmount
+    return () => {
+      removeStructuredData();
+    };
   }, [selectedCategory, searchQuery]);
 
   const handleCategoryChange = (category) => {
@@ -468,7 +487,34 @@ Skills and professional development coverage to advance your career.
             </Flex>
           </Box>
 
-          {blogs.length === 0 ? (
+          {loading ? (
+            <SimpleGrid 
+              columns={{ base: 1, sm: 2, md: 2, lg: 3 }} 
+              spacing={{ base: 6, md: 8 }}
+            >
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Box
+                  key={i}
+                  bg={cardBg}
+                  borderRadius={{ base: 'xl', md: '2xl' }}
+                  overflow="hidden"
+                  border="1px solid"
+                  borderColor={borderColor}
+                >
+                  <Skeleton height={{ base: '200px', md: '250px' }} />
+                  <Box p={{ base: 5, md: 6 }}>
+                    <HStack spacing={3} mb={3}>
+                      <Skeleton height="20px" width="60px" borderRadius="full" />
+                      <Skeleton height="20px" width="80px" borderRadius="full" />
+                    </HStack>
+                    <SkeletonText mt={2} noOfLines={2} spacing={3} skeletonHeight={5} mb={3} />
+                    <SkeletonText noOfLines={3} spacing={3} skeletonHeight={3} mb={4} />
+                    <Skeleton height="16px" width="120px" />
+                  </Box>
+                </Box>
+              ))}
+            </SimpleGrid>
+          ) : blogs.length === 0 ? (
             <Center py={20}>
               <VStack spacing={4}>
                 <Text fontSize="xl" color={mutedColor} fontWeight="medium">

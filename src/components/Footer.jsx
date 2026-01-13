@@ -30,7 +30,7 @@ const SocialButton = ({ children, label, href }) => {
   return (
     <IconButton
       bg={useColorModeValue('white', 'whiteAlpha.100')}
-      color={useColorModeValue('gray.600', 'whiteAlpha.800')}
+      color={useColorModeValue('gray.700', 'whiteAlpha.800')}
       as="a"
       href={href}
       target="_blank"
@@ -43,7 +43,7 @@ const SocialButton = ({ children, label, href }) => {
       cursor={'pointer'}
       transition={'all 0.3s ease'}
       _hover={{
-        bg: useColorModeValue('blue.500', 'blue.400'),
+        bg: useColorModeValue('blue.600', 'blue.400'),
         color: 'white',
         transform: 'translateY(-2px)',
         boxShadow: 'lg',
@@ -62,8 +62,8 @@ const ListHeader = ({ children }) => {
 };
 
 const FooterLink = ({ href, children }) => {
-  const hoverColor = useColorModeValue('blue.500', 'blue.300');
-  const textColor = useColorModeValue('gray.600', 'gray.400');
+  const hoverColor = useColorModeValue('blue.700', 'blue.300');
+  const textColor = useColorModeValue('gray.700', 'gray.300');
   
   return (
     <Link 
@@ -89,7 +89,7 @@ const FooterLink = ({ href, children }) => {
 const Footer = () => {
   const bg = useColorModeValue('gray.50', 'gray.900');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const textColor = useColorModeValue('gray.500', 'gray.400');
+  const textColor = useColorModeValue('gray.700', 'gray.300');
 
   const currentYear = new Date().getFullYear();
 
@@ -165,11 +165,13 @@ const Footer = () => {
                 href="https://linkedin.com/company/growlytic"
                 target="_blank"
                 w="full"
-                colorScheme="blue"
+                bg="blue.600"
+                color="white"
                 rightIcon={<FaLinkedinIn />}
                 size="md"
                 shadow="md"
-                _hover={{ transform: 'translateY(-2px)', shadow: 'lg' }}
+                _hover={{ bg: 'blue.700', transform: 'translateY(-2px)', shadow: 'lg' }}
+                aria-label="Follow Growlytic on LinkedIn"
               >
                 Follow on LinkedIn
               </Button>
@@ -178,9 +180,12 @@ const Footer = () => {
                 to="/contact"
                 w="full"
                 variant="outline"
-                colorScheme="blue"
+                borderColor="blue.600"
+                borderWidth="2px"
+                color="blue.700"
                 size="md"
-                _hover={{ bg: useColorModeValue('blue.50', 'whiteAlpha.100') }}
+                _hover={{ bg: useColorModeValue('blue.50', 'whiteAlpha.100'), borderColor: 'blue.700' }}
+                aria-label="Contact Growlytic support"
               >
                 Contact Us
               </Button>

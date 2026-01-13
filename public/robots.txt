@@ -1,14 +1,55 @@
+# Allow all crawlers by default
 User-agent: *
 Allow: /
 
+# Explicitly allow AI crawlers for content indexing and citations
+# OpenAI GPT
+User-agent: GPTBot
+Allow: /
+
+# Anthropic Claude
+User-agent: Claude-Web
+Allow: /
+
+# Google Bard/Gemini
+User-agent: Google-Extended
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Cohere AI
+User-agent: cohere-ai
+Allow: /
+
+# Common Crawl (used by many AI models)
+User-agent: CCBot
+Allow: /
+
+# Anthropic ClaudeBot
+User-agent: anthropic-ai
+Allow: /
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+# Apple Intelligence
+User-agent: Applebot-Extended
+Allow: /
+
+# Sitemap for all crawlers
 Sitemap: https://growlytic.app/sitemap.xml
 
-# Disallow admin pages (optional - uncomment if you want to hide admin pages from search engines)
-# Disallow: /admin/
-# Disallow: /create-job
-
-# Allow all other pages
+# Allow important pages
 Allow: /free-courses
 Allow: /blogs
-Allow: /login
-Allow: /register 
+Allow: /blogs/*
+Allow: /opportunities
+Allow: /contact
+Allow: /about
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /create-job 

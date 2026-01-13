@@ -64,14 +64,29 @@ export const setBlogMetaTags = ({
   // Basic meta tags
   setMetaTag('description', description, true);
   setMetaTag('author', author, true);
+  setMetaTag('keywords', `${category}, career advice, tech articles, ${author}`, true);
+  
+  // AI Crawler & Citation meta tags
+  setMetaTag('robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1', true);
+  setMetaTag('citation_title', title, true);
+  setMetaTag('citation_author', author, true);
+  setMetaTag('citation_publication_date', publishedDate ? new Date(publishedDate).toISOString().split('T')[0] : '', true);
+  setMetaTag('citation_publisher', 'Growlytic', true);
+  setMetaTag('citation_journal_title', 'Growlytic Blog', true);
   
   // OpenGraph tags (Facebook, LinkedIn, etc.)
   setMetaTag('og:type', 'article');
   setMetaTag('og:title', title);
   setMetaTag('og:description', description);
   setMetaTag('og:image', ogImage);
+  setMetaTag('og:image:secure_url', ogImage); // HTTPS version for secure sites
+  setMetaTag('og:image:type', 'image/png');
+  setMetaTag('og:image:width', '1200');
+  setMetaTag('og:image:height', '630');
+  setMetaTag('og:image:alt', title);
   setMetaTag('og:url', url);
   setMetaTag('og:site_name', siteName);
+  setMetaTag('og:locale', 'en_US');
   
   // Article specific OpenGraph tags
   if (publishedDate) {
@@ -82,13 +97,21 @@ export const setBlogMetaTags = ({
   }
   if (category) {
     setMetaTag('article:section', category);
+    setMetaTag('article:tag', category);
   }
   
-  // Twitter Card tags
+  // Twitter Card tags (X.com)
   setMetaTag('twitter:card', 'summary_large_image', true);
   setMetaTag('twitter:title', title, true);
   setMetaTag('twitter:description', description, true);
   setMetaTag('twitter:image', ogImage, true);
+  setMetaTag('twitter:image:alt', title, true);
+  setMetaTag('twitter:site', '@growlytic', true); // Add your Twitter handle
+  setMetaTag('twitter:creator', '@growlytic', true); // Add your Twitter handle
+  setMetaTag('twitter:label1', 'Written by', true);
+  setMetaTag('twitter:data1', author, true);
+  setMetaTag('twitter:label2', 'Filed under', true);
+  setMetaTag('twitter:data2', category, true);
   
   // Add canonical URL
   let canonical = document.querySelector('link[rel="canonical"]');

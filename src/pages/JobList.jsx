@@ -63,8 +63,9 @@ const JobList = () => {
     try {
       const { data, error } = await supabase
         .from('job_postings')
-        .select('*')
+        .select('id, title, company_name, location, employment_type, salary_range, description, requirements, company_logo_url, application_link, created_at')
         .order('created_at', { ascending: false })
+        .limit(200); // Reasonable limit for better performance
 
       if (error) throw error
       
@@ -316,152 +317,50 @@ const JobList = () => {
     </SimpleGrid>
   )
 
-  const CoolLoadingAnimation = () => (
-    <Center py={20}>
-      <VStack spacing={8}>
-        {/* Animated logo/icon */}
-        <Box position="relative">
-          <Box
-            w="80px"
-            h="80px"
-            borderRadius="full"
-            bg="linear-gradient(135deg, blue.400, purple.500)"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            animation="pulse 2s infinite"
-            boxShadow="0 0 30px rgba(59, 130, 246, 0.3)"
-          >
-            <FaBriefcase size={32} color="white" />
-          </Box>
-          
-          {/* Orbiting dots */}
-          {[...Array(3)].map((_, index) => (
-            <Box
-              key={index}
-              position="absolute"
-              w="12px"
-              h="12px"
-              borderRadius="full"
-              bg="blue.400"
-              top="50%"
-              left="50%"
-              transform="translate(-50%, -50%)"
-              animation={`orbit ${1.5 + index * 0.2}s linear infinite`}
-              style={{
-                transformOrigin: `${40 + index * 10}px ${40 + index * 10}px`
-              }}
-            />
-          ))}
-        </Box>
-
-        {/* Loading text with typing effect */}
-        <VStack spacing={2}>
-          <Text
-            fontSize="xl"
-            fontWeight="bold"
-            color={textColor}
-            animation="fadeInUp 0.8s ease-out"
-          >
-            Finding Amazing Jobs
-          </Text>
-          <Text
-            color={mutedColor}
-            fontSize="md"
-            animation="fadeInUp 0.8s ease-out 0.2s both"
-          >
-            Searching through top companies...
-          </Text>
-        </VStack>
-
-        {/* Progress bar */}
-        <Box w="300px" bg="gray.200" borderRadius="full" h="4px" overflow="hidden">
-          <Box
-            h="100%"
-            bg="linear-gradient(90deg, blue.400, purple.500)"
-            borderRadius="full"
-            animation="progress 2s ease-in-out infinite"
-            width="30%"
-          />
-        </Box>
-
-        {/* Floating cards animation */}
-        <Box position="relative" w="400px" h="200px">
-          {[...Array(3)].map((_, index) => (
-            <Box
-              key={index}
-              position="absolute"
-              w="60px"
-              h="80px"
-              bg={cardBg}
-              borderRadius="lg"
-              border="1px solid"
-              borderColor={borderColor}
-              boxShadow="md"
-              animation={`float ${2 + index * 0.5}s ease-in-out infinite`}
-              style={{
-                left: `${20 + index * 30}%`,
-                top: `${30 + index * 20}%`,
-                animationDelay: `${index * 0.3}s`
-              }}
-            >
-              <Box p={2}>
-                <Skeleton height="20px" mb={1} />
-                <Skeleton height="12px" width="80%" />
-              </Box>
-            </Box>
-          ))}
-        </Box>
-      </VStack>
-    </Center>
-  )
-
   const filteredJobs = filterJobs(jobs)
 
   return (
     <Box bg={bgColor} minH="100vh" py={8}>
-      {/* CSS Animations */}
-      <style>
-        {`
-          @keyframes orbit {
-            0% { transform: rotate(0deg) translateX(40px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
-          }
-          
-          @keyframes fadeInUp {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          
-          @keyframes progress {
-            0% { width: 0%; }
-            50% { width: 70%; }
-            100% { width: 100%; }
-          }
-          
-          @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            25% { transform: translateY(-10px) rotate(2deg); }
-            50% { transform: translateY(-5px) rotate(0deg); }
-            75% { transform: translateY(-15px) rotate(-2deg); }
-          }
-          
-          @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-          }
-        `}
-      </style>
-      
       <Container maxW="container.xl">
         {loading ? (
-          <CoolLoadingAnimation />
+          <VStack spacing={8} align="stretch">
+            {/* Header Skeleton */}
+            <Box textAlign="center" mb={8}>
+              <Skeleton height="40px" width="400px" mx="auto" mb={4} />
+              <Skeleton height="24px" width="300px" mx="auto" />
+            </Box>
+
+            {/* Filters Skeleton */}
+            <Box bg={cardBg} p={6} borderRadius="xl" border="1px solid" borderColor={borderColor}>
+              <VStack spacing={4}>
+                <Skeleton height="40px" width="100%" borderRadius="md" />
+                <Stack direction={{ base: 'column', md: 'row' }} spacing={4} width="100%">
+                  <Skeleton height="40px" flex={1} borderRadius="md" />
+                  <Skeleton height="40px" flex={1} borderRadius="md" />
+                </Stack>
+              </VStack>
+            </Box>
+
+            {/* Job Cards Skeleton */}
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Box
+                  key={i}
+                  p={6}
+                  bg={cardBg}
+                  borderRadius="xl"
+                  border="1px solid"
+                  borderColor={borderColor}
+                >
+                  <Skeleton height="48px" width="48px" mb={4} borderRadius="lg" />
+                  <SkeletonText noOfLines={2} spacing={3} skeletonHeight={5} mb={2} />
+                  <Skeleton height="16px" width="120px" mb={4} />
+                  <SkeletonText noOfLines={2} spacing={2} skeletonHeight={3} mb={4} />
+                  <Skeleton height="36px" width="100%" borderRadius="md" />
+                </Box>
+              ))}
+            </SimpleGrid>
+          </VStack>
         ) : (
           <VStack spacing={8} align="stretch">
             {/* Header */}

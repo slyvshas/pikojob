@@ -105,7 +105,7 @@ const JobDetails = () => {
 
       const { data, error } = await supabase
         .from('job_postings')
-        .select('*')
+        .select('id, title, company_name, location, employment_type, salary_range, description, requirements, company_logo_url, application_link, created_at, posted_by')
         .eq('id', id)
         .single()
 
