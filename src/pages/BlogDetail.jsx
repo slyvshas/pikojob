@@ -1009,11 +1009,6 @@ const BlogDetail = () => {
               'li': {
                 color: textColor,
               },
-              
-              // Links
-              'a': {
-                color: accentColor,
-              },
 
               // Prevent long words from breaking layout
               wordBreak: 'break-word',
