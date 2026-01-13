@@ -141,7 +141,7 @@ const Footer = () => {
           <Stack align={'flex-start'}>
             <ListHeader>Explore</ListHeader>
             <FooterLink href={'/free-courses'}>Free Courses</FooterLink>
-            <FooterLink href={'/blogs'}>Career Blog</FooterLink>
+            <FooterLink href={'/blogs'}>Articles</FooterLink>
           </Stack>
 
           {/* Company Column */}
