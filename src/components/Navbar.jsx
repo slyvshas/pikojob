@@ -21,7 +21,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { HamburgerIcon, CloseIcon, ChevronDownIcon } from '@chakra-ui/icons'
-import { FaPlus, FaList, FaBookOpen, FaEdit, FaMoneyBillWave, FaBook, FaCog, FaInfoCircle, FaEnvelope, FaShieldAlt, FaComments, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa'
+import { FaPlus, FaList, FaBookOpen, FaEdit, FaMoneyBillWave, FaBook, FaCog, FaInfoCircle, FaEnvelope, FaShieldAlt, FaComments, FaSignOutAlt, FaSignInAlt, FaRobot } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 
 const Navbar = () => {
@@ -134,6 +134,34 @@ const Navbar = () => {
             Articles
           </ChakraLink>
 
+          <ChakraLink
+            as={RouterLink}
+            to="/n8n-workflows"
+            fontSize="xl"
+            fontWeight="600"
+            position="relative"
+            _hover={{ 
+              color: 'green.500',
+              textDecoration: 'none',
+              _after: {
+                width: '100%',
+              }
+            }}
+            _after={{
+              content: '""',
+              position: 'absolute',
+              bottom: '-4px',
+              left: 0,
+              width: 0,
+              height: '2px',
+              bg: 'green.500',
+              transition: 'width 0.2s ease',
+            }}
+            transition="all 0.2s ease"
+          >
+            N8N Workflows
+          </ChakraLink>
+
           {/* Admin Dropdown Menu - Only show when logged in */}
           {isAdmin && user ? (
             <Menu>
@@ -165,6 +193,9 @@ const Navbar = () => {
                 </MenuItem>
                 <MenuItem as={RouterLink} to="/admin/free-books" icon={<FaBook />}>
                   Books Dashboard
+                </MenuItem>
+                <MenuItem as={RouterLink} to="/admin/workflow-management" icon={<FaRobot />}>
+                  Workflow Management
                 </MenuItem>
                 <MenuItem as={RouterLink} to="/admin/opportunities" icon={<FaMoneyBillWave />}>
                   Opportunities
@@ -234,6 +265,20 @@ const Navbar = () => {
              _hover={{ color: 'pink.500', bg: 'gray.50' }}
            >
              Articles
+           </ChakraLink>
+
+           <ChakraLink 
+             as={RouterLink} 
+             to="/n8n-workflows" 
+             onClick={() => setIsMenuOpen(false)}
+             fontWeight="600"
+             fontSize="lg"
+             width="full"
+             textAlign="center"
+             py={3}
+             _hover={{ color: 'green.500', bg: 'gray.50' }}
+           >
+             N8N Workflows
            </ChakraLink>
 
            <ChakraLink 
@@ -338,6 +383,24 @@ const Navbar = () => {
               pl={6}
             >
               Books Dashboard
+            </ChakraLink>
+            <ChakraLink 
+              as={RouterLink} 
+              to="/admin/workflow-management" 
+              onClick={() => setIsMenuOpen(false)}
+              _hover={{
+                color: 'purple.500',
+                transform: 'translateX(8px)',
+                bg: 'purple.50',
+                px: 3,
+                py: 1,
+                borderRadius: 'md'
+              }}
+              transition="all 0.3s ease"
+              py={2}
+              pl={6}
+            >
+              Workflow Management
             </ChakraLink>
             <ChakraLink 
               as={RouterLink} 

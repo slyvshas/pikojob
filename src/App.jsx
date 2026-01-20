@@ -23,6 +23,9 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy.jsx'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService.jsx'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy.jsx'));
 const AdminLogin = lazy(() => import('./pages/Admin/AdminLogin.jsx'));
+const N8nWorkflows = lazy(() => import('./pages/N8nWorkflows.jsx'));
+const WorkflowDetail = lazy(() => import('./pages/WorkflowDetail.jsx'));
+const WorkflowManagement = lazy(() => import('./pages/Admin/WorkflowManagement.jsx'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -89,6 +92,8 @@ function AppContent() {
               <Route path="/free-books" element={<FreeBooks />} />
               <Route path="/blogs" element={<Blogs />} />
               <Route path="/blogs/:category/:slug" element={<BlogDetail />} />
+              <Route path="/n8n-workflows" element={<N8nWorkflows />} />
+              <Route path="/n8n-workflows/:slug" element={<WorkflowDetail />} />
               <Route path="/about" element={<AboutUs />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -99,6 +104,7 @@ function AppContent() {
               {/* Protected Admin Routes */}
               <Route path="/admin/free-courses" element={<ProtectedRoute><FreeCoursesDashboard /></ProtectedRoute>} />
               <Route path="/admin/blog-management" element={<ProtectedRoute><BlogManagement /></ProtectedRoute>} />
+              <Route path="/admin/workflow-management" element={<ProtectedRoute><WorkflowManagement /></ProtectedRoute>} />
             </Routes>
           </Suspense>
         </Container>
