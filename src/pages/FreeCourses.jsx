@@ -96,7 +96,8 @@ const FreeCourses = () => {
       const { data, error } = await supabase
         .from('free_courses')
         .select('id, title, provider, link, category, description, created_at')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(2000); // Set limit higher than current record count to get all courses
       if (error) setError(error.message);
       else setCourses(data);
       setLoading(false);
