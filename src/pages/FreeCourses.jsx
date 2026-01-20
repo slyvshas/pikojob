@@ -51,13 +51,13 @@ const partnerLogos = [
   { name: 'Yale University', logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6e/Yale_University_logo.svg' },
   { name: 'Princeton University', logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Princeton_seal.svg' },
   { name: 'Columbia University', logo: 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Columbia_coat_of_arms_no_crest.png' },
-  { name: 'MIT', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0c/MIT_logo.svg' },
+  { name: 'MIT', logo: 'https://upload.wikimedia.org/wikipedia/en/4/44/MIT_Seal.svg' },
   { name: 'Stanford University', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/Seal_of_Leland_Stanford_Junior_University.svg' },
   // Course Platforms
   { name: 'Coursera', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/97/Coursera-Logo_600x600.svg' },
   { name: 'edX', logo: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/EdX.svg' },
   { name: 'Udemy', logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Udemy_logo.svg' },
-  { name: 'Khan Academy', logo: 'https://cdn.worldvectorlogo.com/logos/khan-academy-4.svg' },
+  { name: 'Khan Academy', logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e5/Khan_Academy_Logo_Old_version_2015.png' },
   { name: 'LinkedIn Learning', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png' },
   { name: 'Google', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg' },
 ];
