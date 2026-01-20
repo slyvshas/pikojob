@@ -27,6 +27,12 @@
   path = "/*"
   function = "og-tags"
 
+# SPA redirect - ensure all routes go to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 # Ensure environment variables are available to edge functions
 [context.production.environment]
   # These will use the values from Netlify's environment variables UI
