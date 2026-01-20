@@ -358,7 +358,7 @@ const WorkflowCard = ({ workflow }) => {
   return (
     <Box
       bg={cardBg}
-      borderRadius="2xl"
+      borderRadius="xl"
       border="1px"
       borderColor={isHovered ? borderHoverColor : borderColor}
       overflow="hidden"
@@ -366,45 +366,41 @@ const WorkflowCard = ({ workflow }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       _hover={{
-        transform: 'translateY(-8px) scale(1.02)',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(72, 187, 120, 0.3)',
+        transform: 'translateY(-4px)',
+        boxShadow: '0 12px 24px rgba(0, 0, 0, 0.1)',
       }}
-      transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+      transition="all 0.3s ease"
       h="full"
       display="flex"
       flexDirection="column"
     >
-      {/* Premium Gradient Top Bar */}
+      {/* Slim Gradient Top Bar */}
       <Box
-        h="4px"
+        h="3px"
         bgGradient={accentGradient}
         animation={isHovered ? `${shimmer} 2s infinite linear` : 'none'}
         backgroundSize="200% 100%"
       />
 
-      {/* Card Header with Category & Actions */}
+      {/* Compact Header */}
       <Flex 
-        px={5} 
-        pt={4} 
-        pb={2} 
+        px={4} 
+        pt={3} 
+        pb={1} 
         justify="space-between" 
         align="center"
-        bg={isHovered ? useColorModeValue('green.50', 'gray.750') : 'transparent'}
-        transition="all 0.3s ease"
       >
         {/* Category Badge */}
         {workflow.categories && (
           <Badge
             bgGradient="linear(to-r, green.400, teal.400)"
             color="white"
-            px={3}
-            py={1}
+            px={2}
+            py={0.5}
             borderRadius="full"
-            fontSize="xs"
+            fontSize="2xs"
             fontWeight="bold"
             textTransform="uppercase"
-            letterSpacing="wide"
-            boxShadow="sm"
           >
             {workflow.categories.name}
           </Badge>
@@ -412,42 +408,29 @@ const WorkflowCard = ({ workflow }) => {
         
         {/* Quick Actions */}
         <HStack spacing={1}>
-          <Tooltip label={isLiked ? 'Saved!' : 'Save for later'} hasArrow>
-            <IconButton
-              icon={isLiked ? <FaHeart /> : <FaRegHeart />}
-              size="sm"
-              variant="ghost"
-              color={isLiked ? 'red.400' : 'gray.400'}
-              onClick={() => setIsLiked(!isLiked)}
-              _hover={{ color: 'red.400', transform: 'scale(1.2)' }}
-              transition="all 0.2s"
-              aria-label="Save workflow"
-            />
-          </Tooltip>
-          <Tooltip label="Downloads" hasArrow>
-            <HStack 
-              spacing={1} 
-              px={2} 
-              py={1} 
-              bg={badgeBg} 
-              borderRadius="full"
-              fontSize="xs"
-              color="gray.500"
-            >
-              <Icon as={FaDownload} boxSize={3} />
-              <Text fontWeight="semibold">{workflow.downloads_count || 0}</Text>
-            </HStack>
-          </Tooltip>
+          <IconButton
+            icon={isLiked ? <FaHeart /> : <FaRegHeart />}
+            size="xs"
+            variant="ghost"
+            color={isLiked ? 'red.400' : 'gray.400'}
+            onClick={() => setIsLiked(!isLiked)}
+            _hover={{ color: 'red.400' }}
+            aria-label="Save"
+          />
+          <HStack spacing={1} fontSize="2xs" color="gray.500">
+            <Icon as={FaDownload} boxSize={2.5} />
+            <Text fontWeight="semibold">{workflow.downloads_count || 0}</Text>
+          </HStack>
         </HStack>
       </Flex>
 
-      <VStack align="stretch" spacing={4} p={5} pt={2} flex="1">
+      <VStack align="stretch" spacing={2} px={4} pb={4} flex="1">
         {/* Title */}
         <Text
-          fontSize="xl"
+          fontSize="md"
           fontWeight="bold"
           color={titleColor}
-          lineHeight="1.3"
+          lineHeight="1.2"
           noOfLines={2}
           _hover={{ color: 'green.500' }}
           transition="color 0.2s"
@@ -455,210 +438,129 @@ const WorkflowCard = ({ workflow }) => {
           {workflow.title}
         </Text>
 
-        {/* Difficulty & Trigger Type Row */}
-        <HStack spacing={3} flexWrap="wrap">
+        {/* Compact Meta Row */}
+        <HStack spacing={2} flexWrap="wrap">
           {workflow.difficulty_level && (
-            <HStack 
-              spacing={2} 
-              bg={useColorModeValue(`${difficultyConfig.color}.50`, `${difficultyConfig.color}.900`)}
-              px={3}
-              py={1.5}
-              borderRadius="lg"
-              border="1px"
-              borderColor={useColorModeValue(`${difficultyConfig.color}.200`, `${difficultyConfig.color}.700`)}
-            >
-              <Icon 
-                as={difficultyConfig.icon} 
-                color={`${difficultyConfig.color}.500`}
-                boxSize={3}
-              />
-              <Text 
-                fontSize="xs" 
-                fontWeight="semibold" 
-                color={`${difficultyConfig.color}.600`}
-                _dark={{ color: `${difficultyConfig.color}.300` }}
-              >
-                {difficultyConfig.label}
+            <HStack spacing={1} px={2} py={0.5} bg={`${difficultyConfig.color}.50`} _dark={{ bg: `${difficultyConfig.color}.900` }} borderRadius="md">
+              <Icon as={difficultyConfig.icon} color={`${difficultyConfig.color}.500`} boxSize={2.5} />
+              <Text fontSize="2xs" fontWeight="semibold" color={`${difficultyConfig.color}.600`} _dark={{ color: `${difficultyConfig.color}.300` }}>
+                {workflow.difficulty_level}
               </Text>
             </HStack>
           )}
           {workflow.trigger_type && (
-            <HStack 
-              spacing={2}
-              bg={useColorModeValue('purple.50', 'purple.900')}
-              px={3}
-              py={1.5}
-              borderRadius="lg"
-              border="1px"
-              borderColor={useColorModeValue('purple.200', 'purple.700')}
-            >
-              <Icon as={FaClock} color="purple.500" boxSize={3} />
-              <Text fontSize="xs" fontWeight="semibold" color="purple.600" _dark={{ color: 'purple.300' }}>
+            <HStack spacing={1} px={2} py={0.5} bg="purple.50" _dark={{ bg: 'purple.900' }} borderRadius="md">
+              <Icon as={FaClock} color="purple.500" boxSize={2.5} />
+              <Text fontSize="2xs" fontWeight="semibold" color="purple.600" _dark={{ color: 'purple.300' }}>
                 {workflow.trigger_type}
               </Text>
             </HStack>
           )}
         </HStack>
 
-        {/* Description */}
+        {/* Description - Compact */}
         <Text
-          fontSize="sm"
+          fontSize="xs"
           color={textColor}
-          lineHeight="1.6"
-          noOfLines={3}
-          flex="1"
+          lineHeight="1.5"
+          noOfLines={2}
         >
-          {workflow.description || 'Automate your workflow with this powerful n8n template. One-click import to get started instantly.'}
+          {workflow.description || 'One-click import to automate your workflow.'}
         </Text>
 
-        {/* Tools Used - Enhanced with Icons */}
+        {/* Tools - Compact inline */}
         {workflow.tools_used && workflow.tools_used.length > 0 && (
-          <Box>
-            <HStack spacing={2} mb={3}>
-              <Icon as={FaMagic} boxSize={3} color="green.500" />
-              <Text fontSize="xs" color="gray.500" fontWeight="bold" textTransform="uppercase" letterSpacing="wider">
-                Integrations
-              </Text>
-            </HStack>
-            <Wrap spacing={2}>
-              {workflow.tools_used.slice(0, 5).map((tool, index) => (
-                <WrapItem key={index}>
-                  <HStack
-                    spacing={1}
-                    bg={useColorModeValue('gray.100', 'gray.700')}
-                    px={3}
-                    py={1.5}
-                    borderRadius="full"
-                    _hover={{ 
-                      bg: useColorModeValue('gray.200', 'gray.600'),
-                      transform: 'scale(1.05)'
-                    }}
-                    transition="all 0.2s"
-                    cursor="default"
-                  >
-                    <Text fontSize="sm">{getToolIcon(tool)}</Text>
-                    <Text 
-                      fontSize="xs" 
-                      fontWeight="medium"
-                      color={useColorModeValue('gray.700', 'gray.200')}
-                    >
-                      {tool}
-                    </Text>
-                  </HStack>
-                </WrapItem>
-              ))}
-              {workflow.tools_used.length > 5 && (
-                <WrapItem>
-                  <HStack
-                    spacing={1}
-                    bg="green.100"
-                    _dark={{ bg: 'green.800' }}
-                    px={3}
-                    py={1.5}
-                    borderRadius="full"
-                  >
-                    <Text fontSize="xs" fontWeight="bold" color="green.600" _dark={{ color: 'green.200' }}>
-                      +{workflow.tools_used.length - 5} more
-                    </Text>
-                  </HStack>
-                </WrapItem>
-              )}
-            </Wrap>
-          </Box>
+          <Wrap spacing={1}>
+            {workflow.tools_used.slice(0, 4).map((tool, index) => (
+              <WrapItem key={index}>
+                <HStack
+                  spacing={0.5}
+                  bg={badgeBg}
+                  px={2}
+                  py={0.5}
+                  borderRadius="full"
+                >
+                  <Text fontSize="xs">{getToolIcon(tool)}</Text>
+                  <Text fontSize="2xs" fontWeight="medium" color={textColor}>
+                    {tool}
+                  </Text>
+                </HStack>
+              </WrapItem>
+            ))}
+            {workflow.tools_used.length > 4 && (
+              <WrapItem>
+                <Text fontSize="2xs" color="green.500" fontWeight="bold" px={1}>
+                  +{workflow.tools_used.length - 4}
+                </Text>
+              </WrapItem>
+            )}
+          </Wrap>
         )}
 
         <Spacer />
 
-        {/* Divider */}
-        <Divider borderColor={borderColor} />
-
-        {/* Action Buttons - Premium Style */}
-        <VStack spacing={3}>
+        {/* Compact Action Buttons */}
+        <VStack spacing={2} pt={2}>
           {/* Primary Import Button */}
           <Button
-            size="lg"
+            size="sm"
             w="full"
             bgGradient={accentGradient}
             color="white"
             onClick={handleImportToN8n}
             isLoading={isLoading}
-            loadingText="Preparing..."
-            leftIcon={<FaRobot />}
-            rightIcon={<ArrowForwardIcon />}
+            leftIcon={<FaRobot size={12} />}
             fontWeight="bold"
             _hover={{
               bgGradient: 'linear(to-r, green.500, teal.500, blue.600)',
-              transform: 'translateY(-2px)',
-              boxShadow: 'lg',
+              transform: 'translateY(-1px)',
             }}
-            _active={{
-              transform: 'translateY(0)',
-            }}
-            animation={isHovered ? `${pulse} 2s infinite` : 'none'}
-            transition="all 0.3s"
-            borderRadius="xl"
+            borderRadius="lg"
+            h={8}
           >
             Import to N8N
           </Button>
 
-          {/* Secondary Actions Row */}
-          <Flex gap={2} w="full">
+          {/* Secondary Actions - Inline */}
+          <HStack spacing={2} w="full">
             <Button
               flex="1"
-              size="sm"
+              size="xs"
               variant="outline"
               colorScheme="green"
               onClick={handleCopyJson}
-              leftIcon={isCopied ? <CheckIcon /> : <CopyIcon />}
-              borderRadius="lg"
-              _hover={{ bg: 'green.50', _dark: { bg: 'green.900' } }}
+              leftIcon={isCopied ? <CheckIcon boxSize={2.5} /> : <CopyIcon boxSize={2.5} />}
+              borderRadius="md"
+              h={7}
             >
-              {isCopied ? 'Copied!' : 'Copy JSON'}
+              {isCopied ? 'Copied!' : 'Copy'}
             </Button>
             <Button
               flex="1"
-              size="sm"
+              size="xs"
               variant="outline"
               colorScheme="gray"
               onClick={handleDownloadJson}
-              leftIcon={<DownloadIcon />}
-              borderRadius="lg"
-              _hover={{ bg: 'gray.100', _dark: { bg: 'gray.700' } }}
+              leftIcon={<DownloadIcon boxSize={2.5} />}
+              borderRadius="md"
+              h={7}
             >
               Download
             </Button>
-          </Flex>
-
-          {/* View Details Link */}
-          <Button
-            as={RouterLink}
-            to={`/n8n-workflows/${workflow.slug}`}
-            size="sm"
-            variant="ghost"
-            colorScheme="gray"
-            w="full"
-            rightIcon={<ViewIcon />}
-            _hover={{ 
-              bg: useColorModeValue('gray.100', 'gray.700'),
-              color: 'green.500'
-            }}
-            borderRadius="lg"
-          >
-            View Full Details
-          </Button>
+            <IconButton
+              as={RouterLink}
+              to={`/n8n-workflows/${workflow.slug}`}
+              size="xs"
+              variant="outline"
+              colorScheme="gray"
+              icon={<ViewIcon boxSize={3} />}
+              borderRadius="md"
+              h={7}
+              aria-label="View details"
+            />
+          </HStack>
         </VStack>
       </VStack>
-
-      {/* Hover Glow Effect */}
-      {isHovered && (
-        <Box
-          position="absolute"
-          inset={0}
-          borderRadius="2xl"
-          pointerEvents="none"
-          animation={`${glow} 2s infinite`}
-        />
-      )}
     </Box>
   );
 };
