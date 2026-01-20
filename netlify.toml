@@ -24,10 +24,11 @@
   port = 5173
 
 [[edge_functions]]
-  path = "/*"
+  path = "/blogs/*"
   function = "og-tags"
 
 # SPA redirect - ensure all routes go to index.html for client-side routing
+# This must come AFTER edge functions to avoid conflicts
 [[redirects]]
   from = "/*"
   to = "/index.html"

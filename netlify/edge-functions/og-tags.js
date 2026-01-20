@@ -203,5 +203,5 @@ export default async function handler(request, context) {
 }
 
 export const config = {
-  path: ['/*'],
+  path: ['/blogs/*'],
 };
