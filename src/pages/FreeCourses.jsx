@@ -96,8 +96,7 @@ const FreeCourses = () => {
       const { data, error } = await supabase
         .from('free_courses')
         .select('id, title, provider, link, category, description, created_at')
-        .order('created_at', { ascending: false })
-        .limit(500); // Reasonable limit for better initial load
+        .order('created_at', { ascending: false });
       if (error) setError(error.message);
       else setCourses(data);
       setLoading(false);
