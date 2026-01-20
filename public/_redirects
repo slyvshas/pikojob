@@ -3,7 +3,6 @@
 
 # Other redirects
 /robots.txt    /robots.txt    200
-/google7670d8ffd29e791e.html 200
 
 # SPA catch-all - must be last
 /*             /index.html    200
