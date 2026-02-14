@@ -1,5 +1,5 @@
-# Ezoic ads.txt redirect - must be before catch-all
-/ads.txt       https://srv.adstxtmanager.com/19390/growlytic.app    302!
+# ads.txt - serve directly (not via redirect)
+/ads.txt       /ads.txt    200
 
 # Other redirects
 /robots.txt    /robots.txt    200
