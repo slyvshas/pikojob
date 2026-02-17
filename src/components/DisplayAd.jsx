@@ -95,6 +95,19 @@ const DisplayAd = ({
 };
 
 /**
+ * Multiplex Ad Component
+ * Best for content feeds - shows multiple related content items
+ * Uses the autorelaxed format for native look
+ */
+export const MultiplexAd = (props) => (
+  <DisplayAd
+    slot="1891736244"
+    format="autorelaxed"
+    {...props}
+  />
+);
+
+/**
  * In-Article Ad Component
  * Specifically designed for placement within article content
  */

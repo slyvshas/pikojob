@@ -24,7 +24,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons';
 import { supabase } from '../lib/supabase';
 import WorkflowCard from '../components/WorkflowCard';
-import DisplayAd from '../components/DisplayAd';
+import DisplayAd, { MultiplexAd } from '../components/DisplayAd';
 
 const N8nWorkflows = () => {
   const [workflows, setWorkflows] = useState([]);
@@ -297,7 +297,7 @@ const N8nWorkflows = () => {
                     </SimpleGrid>
                   );
                   if (adsAfterItems.includes(idx + 1) && idx !== currentWorkflows.length - 1) {
-                    items.push(<DisplayAd key={`ad-${idx}`} />);
+                    items.push(<MultiplexAd key={`ad-${idx}`} />);
                   }
                   currentBatch = [];
                 }

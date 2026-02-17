@@ -37,7 +37,7 @@ import { FaExternalLinkAlt, FaFilter, FaTimes, FaBook, FaChevronLeft, FaChevronR
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
 import { keyframes } from '@emotion/react';
-import DisplayAd from '../components/DisplayAd';
+import DisplayAd, { MultiplexAd } from '../components/DisplayAd';
 
 // Logo slider animation
 const scroll = keyframes`
@@ -589,7 +589,7 @@ const FreeCourses = () => {
                 </SimpleGrid>
               );
               if (adsAfterItems.includes(idx + 1) && idx !== paginatedCourses.length - 1) {
-                items.push(<DisplayAd key={`ad-${idx}`} />);
+                items.push(<MultiplexAd key={`ad-${idx}`} />);
               }
               currentBatch = [];
             }
