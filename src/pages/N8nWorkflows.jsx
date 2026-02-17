@@ -24,6 +24,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons';
 import { supabase } from '../lib/supabase';
 import WorkflowCard from '../components/WorkflowCard';
+import DisplayAd from '../components/DisplayAd';
 
 const N8nWorkflows = () => {
   const [workflows, setWorkflows] = useState([]);
@@ -360,10 +361,12 @@ const N8nWorkflows = () => {
                 <Button colorScheme="green" variant="outline" onClick={clearFilters}>
                   Clear Filters
                 </Button>
-              )}
-            </VStack>
+              )}n            </VStack>
           </Center>
         )}
+
+        {/* Display Ad - After Workflow Grid */}
+        <DisplayAd />
       </Container>
     </Box>
   );

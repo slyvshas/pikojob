@@ -28,6 +28,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { FaCalendarAlt, FaUser, FaChevronDown, FaSearch } from 'react-icons/fa';
 import { generateCoverForBlog } from '../utils/generateBlogCover';
 import { generateWebSiteSchema, generateBreadcrumbSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData';
+import DisplayAd from '../components/DisplayAd';
 
 // BlogCard component with auto-generated cover support
 const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate }) => {
@@ -569,6 +570,9 @@ Skills and professional development coverage to advance your career.
                   </Button>
                 </Center>
               )}
+
+              {/* Display Ad - After Blog Grid */}
+              <DisplayAd />
             </>
           )}
         </VStack>

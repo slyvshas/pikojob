@@ -36,6 +36,9 @@ import {
   Spacer,
   useBreakpointValue,
   Stack,
+  Select,
+  FormControl,
+  FormLabel,
 } from '@chakra-ui/react';
 import MediumEditor from '../../components/MediumEditor.jsx';
 import { DeleteIcon } from '@chakra-ui/icons';
@@ -52,6 +55,9 @@ const BlogManagement = () => {
   const [excerpt, setExcerpt] = useState('');
   const [coverImageFile, setCoverImageFile] = useState(null);
   const [tagsInput, setTagsInput] = useState(''); // comma-separated tags
+  const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState('');
   const [postToDelete, setPostToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [postToEdit, setPostToEdit] = useState(null);
@@ -81,7 +87,20 @@ const BlogManagement = () => {
 
   useEffect(() => {
     fetchPosts();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('category')
+      .not('category', 'is', null);
+    
+    if (data) {
+      const uniqueCategories = [...new Set(data.map(item => item.category).filter(Boolean))];
+      setCategories(uniqueCategories);
+    }
+  };
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -127,6 +146,7 @@ const BlogManagement = () => {
     }
     const slug = generateSlug(title);
     const tags = tagsInput.split(',').map(tag => tag.trim()).filter(Boolean);
+    const finalCategory = newCategory.trim() || category;
     const { error } = await supabase.from('blog_posts').insert([
       {
         title,
@@ -136,6 +156,7 @@ const BlogManagement = () => {
         cover_image_url: coverImageUrl,
         author_name: 'Piko staff',
         tags,
+        category: finalCategory,
         created_by: user?.id,
         published_at: new Date().toISOString(),
       },
@@ -155,7 +176,10 @@ const BlogManagement = () => {
       setContent('');
       setCoverImageFile(null);
       setTagsInput('');
+      setCategory('');
+      setNewCategory('');
       fetchPosts();
+      fetchCategories();
       toast({
         title: 'Blog posted!',
         status: 'success',
@@ -245,6 +269,7 @@ const BlogManagement = () => {
         content: editContent,
         cover_image_url: coverImageUrl,
         tags: postToEdit.tags,
+        category: postToEdit.category,
       })
       .eq('id', postToEdit.id);
     
@@ -264,6 +289,7 @@ const BlogManagement = () => {
         isClosable: true,
       });
       fetchPosts();
+      fetchCategories();
       onEditClose();
     }
     
@@ -345,6 +371,40 @@ const BlogManagement = () => {
                     fontSize={{ base: 'md', md: 'sm' }}
                     _focus={{ bg: 'white', borderColor: 'blue.500' }}
                   />
+                  
+                  {/* Category Selection */}
+                  <FormControl>
+                    <FormLabel fontSize="sm" color={mutedColor} fontWeight="medium">
+                      Category
+                    </FormLabel>
+                    <Select
+                      placeholder="Select a category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      size={inputSize}
+                      bg="gray.50"
+                      borderRadius="lg"
+                      fontSize={{ base: 'md', md: 'sm' }}
+                      _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  
+                  <Input
+                    type="text"
+                    placeholder="Or create a new category..."
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    size={inputSize}
+                    bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                  />
+
                   <Input
                     type="file"
                     accept="image/*"
@@ -436,6 +496,13 @@ const BlogManagement = () => {
                         <Text fontSize="sm" color={mutedColor} noOfLines={2}>
                           {post.excerpt}
                         </Text>
+                        
+                        {/* Category Badge */}
+                        {post.category && (
+                          <Badge colorScheme="purple" variant="solid" fontSize="xs" w="fit-content">
+                            {post.category}
+                          </Badge>
+                        )}
                         
                         {post.tags && post.tags.length > 0 && (
                           <Flex wrap="wrap" gap={2}>
@@ -545,6 +612,40 @@ const BlogManagement = () => {
                     fontSize={{ base: 'md', md: 'sm' }}
                     _focus={{ bg: 'white', borderColor: 'blue.500' }}
                   />
+                  
+                  {/* Category Selection */}
+                  <FormControl>
+                    <FormLabel fontSize="sm" color={mutedColor} fontWeight="medium">
+                      Category
+                    </FormLabel>
+                    <Select
+                      placeholder="Select a category"
+                      value={postToEdit.category || ''}
+                      onChange={(e) => setPostToEdit({...postToEdit, category: e.target.value})}
+                      size={inputSize}
+                      bg="gray.50"
+                      borderRadius="lg"
+                      fontSize={{ base: 'md', md: 'sm' }}
+                      _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  
+                  <Input
+                    type="text"
+                    placeholder="Or enter a new category..."
+                    value={postToEdit.newCategory || ''}
+                    onChange={(e) => setPostToEdit({...postToEdit, newCategory: e.target.value, category: e.target.value || postToEdit.category})}
+                    size={inputSize}
+                    bg="gray.50"
+                    borderRadius="lg"
+                    fontSize={{ base: 'md', md: 'sm' }}
+                    _focus={{ bg: 'white', borderColor: 'blue.500' }}
+                  />
+
                   <Input
                     type="file"
                     accept="image/*"

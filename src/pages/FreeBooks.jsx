@@ -31,6 +31,7 @@ import {
 import { FaExternalLinkAlt, FaBook, FaUser, FaBuilding, FaFilter, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
+import DisplayAd from '../components/DisplayAd';
 
 const FreeBooks = () => {
   const [books, setBooks] = useState([]);
@@ -475,6 +476,10 @@ const FreeBooks = () => {
           })}
         </SimpleGrid>
       )}
+
+      {/* Display Ad - After Books Grid */}
+      <DisplayAd />
+
       <BlogSlideUp open={blogSlideUpOpen} slug={activeBlogSlug} onClose={() => setBlogSlideUpOpen(false)} />
     </Box>
   );

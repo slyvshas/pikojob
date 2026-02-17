@@ -33,6 +33,7 @@ import { setBlogMetaTags, resetMetaTags, getSocialShareUrls, openShareWindow } f
 import { generateArticleSchema, generateBreadcrumbSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData';
 import { generateCoverForBlog } from '../utils/generateBlogCover';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import DisplayAd from '../components/DisplayAd';
 
 const BlogDetail = () => {
   const { slug, category } = useParams(); // Now extracting both slug and category
@@ -1016,6 +1017,9 @@ const BlogDetail = () => {
             }}
             dangerouslySetInnerHTML={{ __html: contentWithRelatedBlog }}
           />
+
+          {/* Display Ad - After Article Content */}
+          <DisplayAd />
 
           {/* Related Blogs Section */}
           {relatedBlogs.length > 0 && (

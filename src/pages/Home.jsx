@@ -22,6 +22,7 @@ import { FaGraduationCap, FaNewspaper, FaLightbulb, FaStar, FaArrowRight, FaBook
 import { supabase } from '../lib/supabase'
 import { generateCoverForBlog } from '../utils/generateBlogCover'
 import { generateOrganizationSchema, generateWebSiteSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData'
+import DisplayAd from '../components/DisplayAd'
 
 // Lazy load framer-motion to reduce initial bundle size
 let motion = null;
@@ -394,6 +395,9 @@ const Home = () => {
             </SimpleGrid>
           )}
         </Box>
+
+        {/* Display Ad - After Featured Blogs */}
+        <DisplayAd />
 
         {/* Newsletter Section */}
         <Box mb={24}>

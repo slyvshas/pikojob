@@ -44,6 +44,7 @@ import {
 } from 'react-icons/fa';
 import { Link as RouterLink } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import DisplayAd from '../components/DisplayAd';
 
 const WorkflowDetail = () => {
   const { slug } = useParams();
@@ -511,6 +512,9 @@ const WorkflowDetail = () => {
               </VStack>
             </CardBody>
           </Card>
+
+          {/* Display Ad - After Workflow Content */}
+          <DisplayAd />
         </VStack>
       </Container>
     </Box>

@@ -37,6 +37,7 @@ import { FaExternalLinkAlt, FaFilter, FaTimes, FaBook, FaChevronLeft, FaChevronR
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
 import { keyframes } from '@emotion/react';
+import DisplayAd from '../components/DisplayAd';
 
 // Logo slider animation
 const scroll = keyframes`
@@ -630,6 +631,9 @@ const FreeCourses = () => {
             </Button>
           </Flex>
         )}
+
+        {/* Display Ad - After Course Grid */}
+        <DisplayAd />
         </>
       )}
       <BlogSlideUp open={blogSlideUpOpen} slug={activeBlogSlug} onClose={() => setBlogSlideUpOpen(false)} />
