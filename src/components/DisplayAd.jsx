@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box } from '@chakra-ui/react';
 
 /**
@@ -22,7 +22,9 @@ const DisplayAd = ({
   ...props
 }) => {
   const adRef = useRef(null);
+  const containerRef = useRef(null);
   const isAdLoaded = useRef(false);
+  const [adFilled, setAdFilled] = useState(false);
 
   useEffect(() => {
     // Function to push the ad
@@ -31,6 +33,16 @@ const DisplayAd = ({
         try {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
           isAdLoaded.current = true;
+          
+          // Check if ad was filled after a delay
+          setTimeout(() => {
+            if (containerRef.current) {
+              const insElement = containerRef.current.querySelector('ins');
+              if (insElement && insElement.offsetHeight > 0) {
+                setAdFilled(true);
+              }
+            }
+          }, 2000);
         } catch (error) {
           console.error('AdSense error:', error);
         }
@@ -48,15 +60,20 @@ const DisplayAd = ({
     }
   }, []);
 
+  // Don't render empty space if ads aren't filling
+  // Show minimal container that expands when ad loads
   return (
     <Box
+      ref={containerRef}
       className={`ad-container ${className}`}
-      my={{ base: 4, md: 6 }}
+      my={adFilled ? { base: 4, md: 6 } : 0}
       mx="auto"
       w="100%"
       maxW="100%"
-      minH="90px"
+      minH={adFilled ? '90px' : '0'}
       textAlign="center"
+      overflow="hidden"
+      transition="all 0.3s ease"
       style={style}
       {...props}
     >
@@ -66,6 +83,7 @@ const DisplayAd = ({
         style={{
           display: 'block',
           width: '100%',
+          minHeight: '0',
         }}
         data-ad-client="ca-pub-5560922031519439"
         data-ad-slot={slot}
