@@ -427,10 +427,14 @@ const FreeCourses = () => {
         </Box>
       ) : (
         <>
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-          {paginatedCourses.map((course) => {
+        {(() => {
+          const items = [];
+          const adsAfterItems = [6]; // Show ad after 6th item per page
+          let currentBatch = [];
+          
+          paginatedCourses.forEach((course, idx) => {
             const isNew = (Date.now() - new Date(course.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
-            return (
+            currentBatch.push(
               <Card
                 key={course.id}
                 bg="white"
@@ -577,8 +581,22 @@ const FreeCourses = () => {
                 </Box>
               </Card>
             );
-          })}
-        </SimpleGrid>
+            
+            if (adsAfterItems.includes(idx + 1) || idx === paginatedCourses.length - 1) {
+              items.push(
+                <SimpleGrid key={`grid-${idx}`} columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                  {currentBatch}
+                </SimpleGrid>
+              );
+              if (adsAfterItems.includes(idx + 1) && idx !== paginatedCourses.length - 1) {
+                items.push(<DisplayAd key={`ad-${idx}`} />);
+              }
+              currentBatch = [];
+            }
+          });
+          
+          return items;
+        })()}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (

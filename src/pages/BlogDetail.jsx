@@ -787,6 +787,9 @@ const BlogDetail = () => {
             </Flex>
           )}
 
+          {/* In-Article Ad - Before content */}
+          <DisplayAd format="horizontal" />
+
           {/* Article Body */}
           <Box
             id="blog-content"

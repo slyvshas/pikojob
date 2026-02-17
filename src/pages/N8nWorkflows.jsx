@@ -280,11 +280,31 @@ const N8nWorkflows = () => {
         {/* Workflows Grid */}
         {currentWorkflows.length > 0 ? (
           <VStack spacing={8}>
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} w="full">
-              {currentWorkflows.map((workflow) => (
-                <WorkflowCard key={workflow.id} workflow={workflow} />
-              ))}
-            </SimpleGrid>
+            {(() => {
+              const items = [];
+              const adsAfterItems = [6]; // Show ad after 6th item
+              let currentBatch = [];
+              
+              currentWorkflows.forEach((workflow, idx) => {
+                currentBatch.push(
+                  <WorkflowCard key={workflow.id} workflow={workflow} />
+                );
+                
+                if (adsAfterItems.includes(idx + 1) || idx === currentWorkflows.length - 1) {
+                  items.push(
+                    <SimpleGrid key={`grid-${idx}`} columns={{ base: 1, md: 2, lg: 3 }} spacing={6} w="full">
+                      {currentBatch}
+                    </SimpleGrid>
+                  );
+                  if (adsAfterItems.includes(idx + 1) && idx !== currentWorkflows.length - 1) {
+                    items.push(<DisplayAd key={`ad-${idx}`} />);
+                  }
+                  currentBatch = [];
+                }
+              });
+              
+              return items;
+            })()}
             
             {/* Pagination */}
             {totalPages > 1 && (

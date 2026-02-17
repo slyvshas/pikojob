@@ -529,22 +529,46 @@ Skills and professional development coverage to advance your career.
             </Center>
           ) : (
             <>
-              <SimpleGrid 
-                columns={{ base: 1, sm: 2, md: 2, lg: 3 }} 
-                spacing={{ base: 4, sm: 4, md: 6, lg: 8 }}
-              >
-                {blogs.map((blog) => (
-                  <BlogCard
-                    key={blog.id}
-                    blog={blog}
-                    cardBg={cardBg}
-                    borderColor={borderColor}
-                    textColor={textColor}
-                    mutedColor={mutedColor}
-                    formatDate={formatDate}
-                  />
-                ))}
-              </SimpleGrid>
+              {/* Blogs with interleaved ads */}
+              {(() => {
+                const items = [];
+                const adsAfterItems = [6, 15]; // Show ad after 6th and 15th item
+                let blogIndex = 0;
+                let currentBatch = [];
+                
+                blogs.forEach((blog, idx) => {
+                  currentBatch.push(
+                    <BlogCard
+                      key={blog.id}
+                      blog={blog}
+                      cardBg={cardBg}
+                      borderColor={borderColor}
+                      textColor={textColor}
+                      mutedColor={mutedColor}
+                      formatDate={formatDate}
+                    />
+                  );
+                  blogIndex++;
+                  
+                  if (adsAfterItems.includes(blogIndex) || idx === blogs.length - 1) {
+                    items.push(
+                      <SimpleGrid 
+                        key={`grid-${blogIndex}`}
+                        columns={{ base: 1, sm: 2, md: 2, lg: 3 }} 
+                        spacing={{ base: 4, sm: 4, md: 6, lg: 8 }}
+                      >
+                        {currentBatch}
+                      </SimpleGrid>
+                    );
+                    if (adsAfterItems.includes(blogIndex) && idx !== blogs.length - 1) {
+                      items.push(<DisplayAd key={`ad-${blogIndex}`} />);
+                    }
+                    currentBatch = [];
+                  }
+                });
+                
+                return items;
+              })()}
 
               {/* Load More Button */}
               {hasMore && (
