@@ -33,7 +33,7 @@ import { setBlogMetaTags, resetMetaTags, getSocialShareUrls, openShareWindow } f
 import { generateArticleSchema, generateBreadcrumbSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData';
 import { generateCoverForBlog } from '../utils/generateBlogCover';
 import { ChevronDownIcon } from '@chakra-ui/icons';
-import DisplayAd, { InArticleAd } from '../components/DisplayAd';
+import DisplayAd from '../components/DisplayAd';
 
 const BlogDetail = () => {
   const { slug, category } = useParams(); // Now extracting both slug and category
@@ -788,7 +788,7 @@ const BlogDetail = () => {
           )}
 
           {/* In-Article Ad - Before content */}
-          <InArticleAd />
+          <DisplayAd />
 
           {/* Article Body */}
           <Box

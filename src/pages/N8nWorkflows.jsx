@@ -24,7 +24,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons';
 import { supabase } from '../lib/supabase';
 import WorkflowCard from '../components/WorkflowCard';
-import DisplayAd, { InFeedAd } from '../components/DisplayAd';
+import DisplayAd from '../components/DisplayAd';
 
 const N8nWorkflows = () => {
   const [workflows, setWorkflows] = useState([]);
@@ -289,7 +289,7 @@ const N8nWorkflows = () => {
                 );
                 // Add ad after every 3rd item
                 if ((idx + 1) % 3 === 0 && idx !== currentWorkflows.length - 1) {
-                  items.push(<InFeedAd key={`ad-${idx}`} />);
+                  items.push(<DisplayAd key={`ad-${idx}`} />);
                 }
               });
               

@@ -4,19 +4,10 @@ import { Box } from '@chakra-ui/react';
 /**
  * Google AdSense Display Ad Component
  * 
- * This component renders a responsive Google AdSense display ad unit.
- * It handles the ad initialization and ensures proper loading.
- * 
- * @param {string} slot - The ad slot ID (default: display ad slot)
- * @param {string} format - Ad format: 'auto', 'rectangle', 'horizontal', 'vertical'
- * @param {boolean} fullWidthResponsive - Whether to enable full-width responsive
- * @param {object} style - Additional styles for the container
- * @param {string} className - Additional CSS class
+ * Uses slot 2897803954 with auto format and full-width responsive.
+ * Hides container until ad is confirmed loaded to prevent blank space.
  */
 const DisplayAd = ({ 
-  slot = '2897803954',
-  format = 'auto',
-  fullWidthResponsive = true,
   style = {},
   className = '',
   ...props
@@ -43,7 +34,6 @@ const DisplayAd = ({
     const observer = new MutationObserver(() => {
       if (containerRef.current) {
         const insElement = containerRef.current.querySelector('ins');
-        // Check if Google added content (iframe or filled status)
         if (insElement) {
           const hasIframe = insElement.querySelector('iframe');
           const dataAdStatus = insElement.getAttribute('data-ad-status');
@@ -99,14 +89,11 @@ const DisplayAd = ({
         <ins
           ref={adRef}
           className="adsbygoogle"
-          style={{
-            display: 'block',
-            width: '100%',
-          }}
+          style={{ display: 'block' }}
           data-ad-client="ca-pub-5560922031519439"
-          data-ad-slot={slot}
-          data-ad-format={format}
-          data-full-width-responsive={fullWidthResponsive ? 'true' : 'false'}
+          data-ad-slot="2897803954"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
         />
       </Box>
     );
@@ -128,67 +115,14 @@ const DisplayAd = ({
       <ins
         ref={adRef}
         className="adsbygoogle"
-        style={{
-          display: 'block',
-          width: '100%',
-        }}
+        style={{ display: 'block' }}
         data-ad-client="ca-pub-5560922031519439"
-        data-ad-slot={slot}
-        data-ad-format={format}
-        data-full-width-responsive={fullWidthResponsive ? 'true' : 'false'}
+        data-ad-slot="2897803954"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
       />
     </Box>
   );
 };
-
-/**
- * In-Feed Ad Component
- * Best for between content items in listings/feeds
- */
-export const InFeedAd = (props) => (
-  <DisplayAd
-    slot="2429523378"
-    format="fluid"
-    {...props}
-  />
-);
-
-/**
- * Multiplex Ad Component
- * Best for content feeds - shows multiple related content items
- * Uses the autorelaxed format for native look
- */
-export const MultiplexAd = (props) => (
-  <DisplayAd
-    slot="1891736244"
-    format="autorelaxed"
-    {...props}
-  />
-);
-
-/**
- * In-Article Ad Component
- * Specifically designed for placement within article content
- */
-export const InArticleAd = (props) => (
-  <DisplayAd
-    slot="2784746590"
-    format="fluid"
-    style={{ textAlign: 'center' }}
-    {...props}
-  />
-);
-
-/**
- * Sidebar Ad Component
- * For sidebar placements with fixed dimensions
- */
-export const SidebarAd = (props) => (
-  <DisplayAd
-    format="rectangle"
-    fullWidthResponsive={false}
-    {...props}
-  />
-);
 
 export default DisplayAd;

@@ -28,7 +28,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { FaCalendarAlt, FaUser, FaChevronDown, FaSearch } from 'react-icons/fa';
 import { generateCoverForBlog } from '../utils/generateBlogCover';
 import { generateWebSiteSchema, generateBreadcrumbSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData';
-import DisplayAd, { InFeedAd } from '../components/DisplayAd';
+import DisplayAd from '../components/DisplayAd';
 
 // BlogCard component with auto-generated cover support
 const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate }) => {
@@ -547,7 +547,7 @@ Skills and professional development coverage to advance your career.
                   );
                   // Add ad after every 3rd item (after each row)
                   if ((idx + 1) % 3 === 0 && idx !== blogs.length - 1) {
-                    items.push(<InFeedAd key={`ad-${idx}`} />);
+                    items.push(<DisplayAd key={`ad-${idx}`} />);
                   }
                 });
                 

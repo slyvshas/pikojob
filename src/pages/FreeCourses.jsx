@@ -37,7 +37,7 @@ import { FaExternalLinkAlt, FaFilter, FaTimes, FaBook, FaChevronLeft, FaChevronR
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
 import { keyframes } from '@emotion/react';
-import DisplayAd, { InFeedAd } from '../components/DisplayAd';
+import DisplayAd from '../components/DisplayAd';
 
 // Logo slider animation
 const scroll = keyframes`
@@ -582,7 +582,7 @@ const FreeCourses = () => {
             
             // Add ad after every 3rd item
             if ((idx + 1) % 3 === 0 && idx !== paginatedCourses.length - 1) {
-              items.push(<InFeedAd key={`ad-${idx}`} />);
+              items.push(<DisplayAd key={`ad-${idx}`} />);
             }
           });
           
