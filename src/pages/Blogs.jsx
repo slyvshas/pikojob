@@ -28,7 +28,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { FaCalendarAlt, FaUser, FaChevronDown, FaSearch } from 'react-icons/fa';
 import { generateCoverForBlog } from '../utils/generateBlogCover';
 import { generateWebSiteSchema, generateBreadcrumbSchema, injectMultipleSchemas, removeStructuredData } from '../utils/structuredData';
-import DisplayAd, { MultiplexAd } from '../components/DisplayAd';
+import DisplayAd, { InFeedAd } from '../components/DisplayAd';
 
 // BlogCard component with auto-generated cover support
 const BlogCard = ({ blog, cardBg, borderColor, textColor, mutedColor, formatDate }) => {
@@ -532,12 +532,9 @@ Skills and professional development coverage to advance your career.
               {/* Blogs with interleaved ads */}
               {(() => {
                 const items = [];
-                const adsAfterItems = [6, 15]; // Show ad after 6th and 15th item
-                let blogIndex = 0;
-                let currentBatch = [];
-                
+                // Show ad after every 3 items (each row)
                 blogs.forEach((blog, idx) => {
-                  currentBatch.push(
+                  items.push(
                     <BlogCard
                       key={blog.id}
                       blog={blog}
@@ -548,26 +545,25 @@ Skills and professional development coverage to advance your career.
                       formatDate={formatDate}
                     />
                   );
-                  blogIndex++;
-                  
-                  if (adsAfterItems.includes(blogIndex) || idx === blogs.length - 1) {
-                    items.push(
-                      <SimpleGrid 
-                        key={`grid-${blogIndex}`}
-                        columns={{ base: 1, sm: 2, md: 2, lg: 3 }} 
-                        spacing={{ base: 4, sm: 4, md: 6, lg: 8 }}
-                      >
-                        {currentBatch}
-                      </SimpleGrid>
-                    );
-                    if (adsAfterItems.includes(blogIndex) && idx !== blogs.length - 1) {
-                      items.push(<MultiplexAd key={`ad-${blogIndex}`} />);
-                    }
-                    currentBatch = [];
+                  // Add ad after every 3rd item (after each row)
+                  if ((idx + 1) % 3 === 0 && idx !== blogs.length - 1) {
+                    items.push(<InFeedAd key={`ad-${idx}`} />);
                   }
                 });
                 
-                return items;
+                return (
+                  <SimpleGrid 
+                    columns={{ base: 1, sm: 2, md: 2, lg: 3 }} 
+                    spacing={{ base: 4, sm: 4, md: 6, lg: 8 }}
+                    sx={{
+                      '& > .ad-container': {
+                        gridColumn: '1 / -1',
+                      }
+                    }}
+                  >
+                    {items}
+                  </SimpleGrid>
+                );
               })()}
 
               {/* Load More Button */}

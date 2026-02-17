@@ -24,7 +24,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons';
 import { supabase } from '../lib/supabase';
 import WorkflowCard from '../components/WorkflowCard';
-import DisplayAd, { MultiplexAd } from '../components/DisplayAd';
+import DisplayAd, { InFeedAd } from '../components/DisplayAd';
 
 const N8nWorkflows = () => {
   const [workflows, setWorkflows] = useState([]);
@@ -282,29 +282,29 @@ const N8nWorkflows = () => {
           <VStack spacing={8}>
             {(() => {
               const items = [];
-              const adsAfterItems = [6]; // Show ad after 6th item
-              let currentBatch = [];
-              
+              // Show ad after every 3 items (each row)
               currentWorkflows.forEach((workflow, idx) => {
-                currentBatch.push(
+                items.push(
                   <WorkflowCard key={workflow.id} workflow={workflow} />
                 );
-                
-                if (adsAfterItems.includes(idx + 1) || idx === currentWorkflows.length - 1) {
-                  items.push(
-                    <SimpleGrid key={`grid-${idx}`} columns={{ base: 1, md: 2, lg: 3 }} spacing={6} w="full">
-                      {currentBatch}
-                    </SimpleGrid>
-                  );
-                  if (adsAfterItems.includes(idx + 1) && idx !== currentWorkflows.length - 1) {
-                    items.push(<MultiplexAd key={`ad-${idx}`} />);
-                  }
-                  currentBatch = [];
+                // Add ad after every 3rd item
+                if ((idx + 1) % 3 === 0 && idx !== currentWorkflows.length - 1) {
+                  items.push(<InFeedAd key={`ad-${idx}`} />);
                 }
               });
               
-              return items;
-            })()}
+              return (
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} w="full"
+                  sx={{
+                    '& > .ad-container': {
+                      gridColumn: '1 / -1',
+                    }
+                  }}
+                >
+                  {items}
+                </SimpleGrid>
+              );
+            })()}}
             
             {/* Pagination */}
             {totalPages > 1 && (

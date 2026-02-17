@@ -33,47 +33,95 @@ const DisplayAd = ({
         try {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
           isAdLoaded.current = true;
-          
-          // Check if ad was filled after a delay
-          setTimeout(() => {
-            if (containerRef.current) {
-              const insElement = containerRef.current.querySelector('ins');
-              if (insElement && insElement.offsetHeight > 0) {
-                setAdFilled(true);
-              }
-            }
-          }, 2000);
         } catch (error) {
           console.error('AdSense error:', error);
         }
       }
     };
 
+    // Use MutationObserver to detect when Google injects ad content
+    const observer = new MutationObserver(() => {
+      if (containerRef.current) {
+        const insElement = containerRef.current.querySelector('ins');
+        // Check if Google added content (iframe or filled status)
+        if (insElement) {
+          const hasIframe = insElement.querySelector('iframe');
+          const dataAdStatus = insElement.getAttribute('data-ad-status');
+          if (hasIframe || dataAdStatus === 'filled') {
+            setAdFilled(true);
+            observer.disconnect();
+          } else if (dataAdStatus === 'unfilled') {
+            // Ad was explicitly not filled - keep hidden
+            observer.disconnect();
+          }
+        }
+      }
+    });
+
     // Wait for adsbygoogle script to be ready
     if (typeof window !== 'undefined') {
+      // Start observing for changes
+      if (containerRef.current) {
+        observer.observe(containerRef.current, { 
+          childList: true, 
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['data-ad-status']
+        });
+      }
+      
       // Small delay to ensure the ins element is in DOM and script is loaded
       const timer = setTimeout(() => {
         loadAd();
       }, 100);
       
-      return () => clearTimeout(timer);
+      // Cleanup after 5 seconds if no ad loaded
+      const cleanupTimer = setTimeout(() => {
+        observer.disconnect();
+      }, 5000);
+      
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(cleanupTimer);
+        observer.disconnect();
+      };
     }
   }, []);
 
-  // Don't render empty space if ads aren't filling
-  // Show minimal container that expands when ad loads
+  // Completely hide container until ad is confirmed loaded
+  if (!adFilled) {
+    return (
+      <Box
+        ref={containerRef}
+        className={`ad-container ${className}`}
+        style={{ display: 'none' }}
+      >
+        <ins
+          ref={adRef}
+          className="adsbygoogle"
+          style={{
+            display: 'block',
+            width: '100%',
+          }}
+          data-ad-client="ca-pub-5560922031519439"
+          data-ad-slot={slot}
+          data-ad-format={format}
+          data-full-width-responsive={fullWidthResponsive ? 'true' : 'false'}
+        />
+      </Box>
+    );
+  }
+
   return (
     <Box
       ref={containerRef}
       className={`ad-container ${className}`}
-      my={adFilled ? { base: 4, md: 6 } : 0}
+      my={{ base: 4, md: 6 }}
       mx="auto"
       w="100%"
       maxW="100%"
-      minH={adFilled ? '90px' : '0'}
+      minH="90px"
       textAlign="center"
-      overflow="hidden"
-      transition="all 0.3s ease"
       style={style}
       {...props}
     >
@@ -83,7 +131,6 @@ const DisplayAd = ({
         style={{
           display: 'block',
           width: '100%',
-          minHeight: '0',
         }}
         data-ad-client="ca-pub-5560922031519439"
         data-ad-slot={slot}
@@ -93,6 +140,18 @@ const DisplayAd = ({
     </Box>
   );
 };
+
+/**
+ * In-Feed Ad Component
+ * Best for between content items in listings/feeds
+ */
+export const InFeedAd = (props) => (
+  <DisplayAd
+    slot="2429523378"
+    format="fluid"
+    {...props}
+  />
+);
 
 /**
  * Multiplex Ad Component
@@ -113,6 +172,7 @@ export const MultiplexAd = (props) => (
  */
 export const InArticleAd = (props) => (
   <DisplayAd
+    slot="2784746590"
     format="fluid"
     style={{ textAlign: 'center' }}
     {...props}

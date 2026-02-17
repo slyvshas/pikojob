@@ -37,7 +37,7 @@ import { FaExternalLinkAlt, FaFilter, FaTimes, FaBook, FaChevronLeft, FaChevronR
 import BlogSlideUp from '../components/BlogSlideUp';
 import { useAuth } from '../context/AuthContext';
 import { keyframes } from '@emotion/react';
-import DisplayAd, { MultiplexAd } from '../components/DisplayAd';
+import DisplayAd, { InFeedAd } from '../components/DisplayAd';
 
 // Logo slider animation
 const scroll = keyframes`
@@ -429,12 +429,10 @@ const FreeCourses = () => {
         <>
         {(() => {
           const items = [];
-          const adsAfterItems = [6]; // Show ad after 6th item per page
-          let currentBatch = [];
-          
+          // Show ad after every 3 items (each row)
           paginatedCourses.forEach((course, idx) => {
             const isNew = (Date.now() - new Date(course.created_at).getTime()) < 3 * 24 * 60 * 60 * 1000;
-            currentBatch.push(
+            items.push(
               <Card
                 key={course.id}
                 bg="white"
@@ -582,20 +580,23 @@ const FreeCourses = () => {
               </Card>
             );
             
-            if (adsAfterItems.includes(idx + 1) || idx === paginatedCourses.length - 1) {
-              items.push(
-                <SimpleGrid key={`grid-${idx}`} columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-                  {currentBatch}
-                </SimpleGrid>
-              );
-              if (adsAfterItems.includes(idx + 1) && idx !== paginatedCourses.length - 1) {
-                items.push(<MultiplexAd key={`ad-${idx}`} />);
-              }
-              currentBatch = [];
+            // Add ad after every 3rd item
+            if ((idx + 1) % 3 === 0 && idx !== paginatedCourses.length - 1) {
+              items.push(<InFeedAd key={`ad-${idx}`} />);
             }
           });
           
-          return items;
+          return (
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}
+              sx={{
+                '& > .ad-container': {
+                  gridColumn: '1 / -1',
+                }
+              }}
+            >
+              {items}
+            </SimpleGrid>
+          );
         })()}
 
         {/* Pagination Controls */}
