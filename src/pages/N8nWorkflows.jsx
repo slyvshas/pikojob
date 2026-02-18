@@ -304,7 +304,7 @@ const N8nWorkflows = () => {
                   {items}
                 </SimpleGrid>
               );
-            })()}}
+            })()}
             
             {/* Pagination */}
             {totalPages > 1 && (

@@ -216,6 +216,30 @@ const BlogDetail = () => {
     return paragraphs.join('</p>');
   }, [normalizedContent, relatedBlogs]);
 
+  // Split content into 3 sections for ad injection
+  const contentSections = useMemo(() => {
+    if (!contentWithRelatedBlog) return ['', '', ''];
+    
+    // Split by closing paragraph tags to find natural break points
+    const paragraphs = contentWithRelatedBlog.split('</p>');
+    const totalParagraphs = paragraphs.length;
+    
+    // Need at least 6 paragraphs to show 3 sections with 2 ads
+    if (totalParagraphs < 6) {
+      return [contentWithRelatedBlog, '', ''];
+    }
+    
+    // Calculate split points (at 1/3 and 2/3 of content)
+    const firstSplit = Math.floor(totalParagraphs / 3);
+    const secondSplit = Math.floor((totalParagraphs * 2) / 3);
+    
+    const section1 = paragraphs.slice(0, firstSplit).join('</p>') + '</p>';
+    const section2 = paragraphs.slice(firstSplit, secondSplit).join('</p>') + '</p>';
+    const section3 = paragraphs.slice(secondSplit).join('</p>');
+    
+    return [section1, section2, section3];
+  }, [contentWithRelatedBlog]);
+
   // Generate cover image if blog has no cover (defer to not block initial render)
   useEffect(() => {
     if (blog && !blog.cover_image_url) {
@@ -790,12 +814,9 @@ const BlogDetail = () => {
           {/* In-Article Ad - Before content */}
           <DisplayAd />
 
-          {/* Article Body */}
-          <Box
-            id="blog-content"
-            className="blog-article-content"
-            color={textColor}
-            sx={{
+          {/* Article Body - Split into sections with ads */}
+          {(() => {
+            const articleStyles = {
               // Base typography - Poppins for modern, readable article text
               fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
               fontSize: fontSize === 'sm' ? { base: '15px', sm: '16px', md: '17px' } : 
@@ -1017,9 +1038,54 @@ const BlogDetail = () => {
               // Prevent long words from breaking layout
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
-            }}
-            dangerouslySetInnerHTML={{ __html: contentWithRelatedBlog }}
-          />
+            };
+
+          // Render content in sections with ads in between
+          const renderSections = () => {
+            const [section1, section2, section3] = contentSections;
+            return (
+              <>
+                {/* Section 1 */}
+                {section1 && (
+                  <Box
+                    className="blog-article-content"
+                    color={textColor}
+                    sx={articleStyles}
+                    dangerouslySetInnerHTML={{ __html: section1 }}
+                  />
+                )}
+                
+                {/* In-Article Ad 1 */}
+                {section2 && <DisplayAd />}
+                
+                {/* Section 2 */}
+                {section2 && (
+                  <Box
+                    className="blog-article-content"
+                    color={textColor}
+                    sx={articleStyles}
+                    dangerouslySetInnerHTML={{ __html: section2 }}
+                  />
+                )}
+                
+                {/* In-Article Ad 2 */}
+                {section3 && <DisplayAd />}
+                
+                {/* Section 3 */}
+                {section3 && (
+                  <Box
+                    className="blog-article-content"
+                    color={textColor}
+                    sx={articleStyles}
+                    dangerouslySetInnerHTML={{ __html: section3 }}
+                  />
+                )}
+              </>
+            );
+          };
+          
+          return renderSections();
+          })()}
 
           {/* Display Ad - After Article Content */}
           <DisplayAd />

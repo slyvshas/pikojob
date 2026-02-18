@@ -5,7 +5,7 @@ import { Box } from '@chakra-ui/react';
  * Google AdSense Display Ad Component
  * 
  * Uses slot 2897803954 with auto format and full-width responsive.
- * Hides container until ad is confirmed loaded to prevent blank space.
+ * Shows ad container initially (required for AdSense to load), then hides if unfilled.
  */
 const DisplayAd = ({ 
   style = {},
@@ -15,7 +15,8 @@ const DisplayAd = ({
   const adRef = useRef(null);
   const containerRef = useRef(null);
   const isAdLoaded = useRef(false);
-  const [adFilled, setAdFilled] = useState(false);
+  // Start as null (unknown state), then set to true/false based on ad status
+  const [adStatus, setAdStatus] = useState('loading'); // 'loading' | 'filled' | 'unfilled'
 
   useEffect(() => {
     // Function to push the ad
@@ -26,6 +27,7 @@ const DisplayAd = ({
           isAdLoaded.current = true;
         } catch (error) {
           console.error('AdSense error:', error);
+          setAdStatus('unfilled');
         }
       }
     };
@@ -38,10 +40,11 @@ const DisplayAd = ({
           const hasIframe = insElement.querySelector('iframe');
           const dataAdStatus = insElement.getAttribute('data-ad-status');
           if (hasIframe || dataAdStatus === 'filled') {
-            setAdFilled(true);
+            setAdStatus('filled');
             observer.disconnect();
           } else if (dataAdStatus === 'unfilled') {
-            // Ad was explicitly not filled - keep hidden
+            // Ad was explicitly not filled - hide it
+            setAdStatus('unfilled');
             observer.disconnect();
           }
         }
@@ -65,8 +68,11 @@ const DisplayAd = ({
         loadAd();
       }, 100);
       
-      // Cleanup after 5 seconds if no ad loaded
+      // Timeout: if no response after 5 seconds, mark as unfilled
       const cleanupTimer = setTimeout(() => {
+        if (adStatus === 'loading') {
+          setAdStatus('unfilled');
+        }
         observer.disconnect();
       }, 5000);
       
@@ -78,27 +84,13 @@ const DisplayAd = ({
     }
   }, []);
 
-  // Completely hide container until ad is confirmed loaded
-  if (!adFilled) {
-    return (
-      <Box
-        ref={containerRef}
-        className={`ad-container ${className}`}
-        style={{ display: 'none' }}
-      >
-        <ins
-          ref={adRef}
-          className="adsbygoogle"
-          style={{ display: 'block' }}
-          data-ad-client="ca-pub-5560922031519439"
-          data-ad-slot="2897803954"
-          data-ad-format="auto"
-          data-full-width-responsive="true"
-        />
-      </Box>
-    );
+  // Hide completely if ad was not filled
+  if (adStatus === 'unfilled') {
+    return null;
   }
 
+  // Show container - must be visible for AdSense to detect and load the ad
+  // AdSense won't load ads into display:none or visibility:hidden elements
   return (
     <Box
       ref={containerRef}
