@@ -1,9 +1,6 @@
 import React, { useEffect, useRef, useState, useId, memo } from 'react';
 import { Box } from '@chakra-ui/react';
 
-// Track globally which ad instances have been loaded to prevent duplicate pushes
-const loadedAdInstances = new Set();
-
 /**
  * Google AdSense Display Ad Component
  * 
@@ -24,40 +21,59 @@ const DisplayAd = memo(({
   const instanceId = adKey || reactId;
   // Start as null (unknown state), then set to true/false based on ad status
   const [adStatus, setAdStatus] = useState('loading'); // 'loading' | 'filled' | 'unfilled'
+  // Use ref to track status for timeout callback to avoid stale closure
+  const adStatusRef = useRef('loading');
+  // Track if ad push was attempted for this mount
+  const hasAttemptedLoad = useRef(false);
 
   useEffect(() => {
-    // Skip if this instance was already loaded (prevents duplicate pushes on re-render)
-    if (loadedAdInstances.has(instanceId)) {
-      return;
-    }
+    // Reset ref on mount
+    adStatusRef.current = 'loading';
+    hasAttemptedLoad.current = false;
+    
+    let loadTimer = null;
+    let cleanupTimer = null;
+    let resizeObserver = null;
+    let mutationObserver = null;
 
-    // Function to push the ad
+    // Function to push the ad - only when container has width
     const loadAd = () => {
-      if (adRef.current && !loadedAdInstances.has(instanceId)) {
-        try {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-          loadedAdInstances.add(instanceId);
-        } catch (error) {
-          console.error('AdSense error:', error);
-          setAdStatus('unfilled');
-        }
+      if (!adRef.current || hasAttemptedLoad.current) return;
+      
+      // Check if container has actual width (required for AdSense)
+      const containerWidth = containerRef.current?.offsetWidth || 0;
+      if (containerWidth === 0) {
+        // Container has no width yet, wait and retry
+        loadTimer = setTimeout(loadAd, 200);
+        return;
+      }
+      
+      try {
+        hasAttemptedLoad.current = true;
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (error) {
+        console.error('AdSense error:', error);
+        adStatusRef.current = 'unfilled';
+        setAdStatus('unfilled');
       }
     };
 
     // Use MutationObserver to detect when Google injects ad content
-    const observer = new MutationObserver(() => {
+    mutationObserver = new MutationObserver(() => {
       if (containerRef.current) {
         const insElement = containerRef.current.querySelector('ins');
         if (insElement) {
           const hasIframe = insElement.querySelector('iframe');
           const dataAdStatus = insElement.getAttribute('data-ad-status');
           if (hasIframe || dataAdStatus === 'filled') {
+            adStatusRef.current = 'filled';
             setAdStatus('filled');
-            observer.disconnect();
+            mutationObserver?.disconnect();
           } else if (dataAdStatus === 'unfilled') {
             // Ad was explicitly not filled - hide it
+            adStatusRef.current = 'unfilled';
             setAdStatus('unfilled');
-            observer.disconnect();
+            mutationObserver?.disconnect();
           }
         }
       }
@@ -67,31 +83,48 @@ const DisplayAd = memo(({
     if (typeof window !== 'undefined') {
       // Start observing for changes
       if (containerRef.current) {
-        observer.observe(containerRef.current, { 
+        mutationObserver.observe(containerRef.current, { 
           childList: true, 
           subtree: true,
           attributes: true,
           attributeFilter: ['data-ad-status']
         });
+        
+        // Use ResizeObserver to detect when container gets width
+        if (typeof ResizeObserver !== 'undefined') {
+          resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+              if (entry.contentRect.width > 0 && !hasAttemptedLoad.current) {
+                loadAd();
+                resizeObserver?.disconnect();
+                break;
+              }
+            }
+          });
+          resizeObserver.observe(containerRef.current);
+        }
       }
       
-      // Small delay to ensure the ins element is in DOM and script is loaded
-      const timer = setTimeout(() => {
+      // Fallback: try loading after a delay
+      loadTimer = setTimeout(() => {
         loadAd();
-      }, 100);
+      }, 300);
       
-      // Timeout: if no response after 5 seconds, mark as unfilled
-      const cleanupTimer = setTimeout(() => {
-        if (adStatus === 'loading') {
+      // Timeout: if no response after 10 seconds, mark as unfilled
+      cleanupTimer = setTimeout(() => {
+        if (adStatusRef.current === 'loading') {
+          adStatusRef.current = 'unfilled';
           setAdStatus('unfilled');
         }
-        observer.disconnect();
-      }, 5000);
+        mutationObserver?.disconnect();
+        resizeObserver?.disconnect();
+      }, 10000);
       
       return () => {
-        clearTimeout(timer);
-        clearTimeout(cleanupTimer);
-        observer.disconnect();
+        if (loadTimer) clearTimeout(loadTimer);
+        if (cleanupTimer) clearTimeout(cleanupTimer);
+        mutationObserver?.disconnect();
+        resizeObserver?.disconnect();
       };
     }
   }, [instanceId]);
@@ -127,6 +160,6 @@ const DisplayAd = memo(({
       />
     </Box>
   );
-};
+});
 
 export default DisplayAd;
