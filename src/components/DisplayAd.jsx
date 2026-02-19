@@ -1,30 +1,42 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useId, memo } from 'react';
 import { Box } from '@chakra-ui/react';
+
+// Track globally which ad instances have been loaded to prevent duplicate pushes
+const loadedAdInstances = new Set();
 
 /**
  * Google AdSense Display Ad Component
  * 
  * Uses slot 2897803954 with auto format and full-width responsive.
  * Shows ad container initially (required for AdSense to load), then hides if unfilled.
+ * Memoized to prevent unnecessary re-renders.
  */
-const DisplayAd = ({ 
+const DisplayAd = memo(({ 
   style = {},
   className = '',
+  adKey = '', // Optional stable key for the ad placement
   ...props
 }) => {
   const adRef = useRef(null);
   const containerRef = useRef(null);
-  const isAdLoaded = useRef(false);
+  const reactId = useId();
+  // Create a stable instance ID combining the provided key with React's useId
+  const instanceId = adKey || reactId;
   // Start as null (unknown state), then set to true/false based on ad status
   const [adStatus, setAdStatus] = useState('loading'); // 'loading' | 'filled' | 'unfilled'
 
   useEffect(() => {
+    // Skip if this instance was already loaded (prevents duplicate pushes on re-render)
+    if (loadedAdInstances.has(instanceId)) {
+      return;
+    }
+
     // Function to push the ad
     const loadAd = () => {
-      if (adRef.current && !isAdLoaded.current) {
+      if (adRef.current && !loadedAdInstances.has(instanceId)) {
         try {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
-          isAdLoaded.current = true;
+          loadedAdInstances.add(instanceId);
         } catch (error) {
           console.error('AdSense error:', error);
           setAdStatus('unfilled');
@@ -82,7 +94,7 @@ const DisplayAd = ({
         observer.disconnect();
       };
     }
-  }, []);
+  }, [instanceId]);
 
   // Hide completely if ad was not filled
   if (adStatus === 'unfilled') {

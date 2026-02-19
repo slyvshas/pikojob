@@ -580,9 +580,10 @@ const FreeCourses = () => {
               </Card>
             );
             
-            // Add ad after every 3rd item
+            // Add ad after every 3rd item with a stable key based on ad position number
             if ((idx + 1) % 3 === 0 && idx !== paginatedCourses.length - 1) {
-              items.push(<DisplayAd key={`ad-${idx}`} />);
+              const adPosition = Math.floor((idx + 1) / 3);
+              items.push(<DisplayAd key={`course-ad-${currentPage}-${adPosition}`} adKey={`course-page-${currentPage}-ad-${adPosition}`} />);
             }
           });
           
@@ -652,7 +653,7 @@ const FreeCourses = () => {
         )}
 
         {/* Display Ad - After Course Grid */}
-        <DisplayAd />
+        <DisplayAd adKey="courses-bottom-ad" />
         </>
       )}
       <BlogSlideUp open={blogSlideUpOpen} slug={activeBlogSlug} onClose={() => setBlogSlideUpOpen(false)} />
